@@ -1,0 +1,16 @@
+
+Initial statistics: 1 variables; iteration 0; function evaluation 0; phase 1
+Function value 4.0941907e+09; maximum gradient component mag 1.5556e+09
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.19398  1.55560e+09 |
+
+ - final statistics:
+1 variables; iteration 5; function evaluation 29
+Function value -2.3021e+01; maximum gradient component mag -1.5620e-05
+Exit code = 1;  converg criter 1.0000e-04
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.48015 -1.56203e-05 |
+size of file gradfil1.tmp = 0
+size of file gradfil2.tmp = 0
+size of file varssave.tmp = 0
+size of file cmpdiff.tmp = 0

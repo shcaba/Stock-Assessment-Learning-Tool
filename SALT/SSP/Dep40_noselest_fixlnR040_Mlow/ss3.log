@@ -1,0 +1,41 @@
+
+Initial statistics: 1 variables; iteration 0; function evaluation 0; phase 1
+Function value 6.3781156e+08; maximum gradient component mag 3.2331e+10
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.50231  3.23312e+10 |
+  ic > imax  in fminim is answer attained ?
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.50231  9.38604e+05 |
+Function minimizer not making progress ... is minimum attained?
+Minimprove criterion = 0.0000e+00
+
+ - final statistics:
+1 variables; iteration 4; function evaluation 33
+Function value 6.3781e+08; maximum gradient component mag 9.3860e+05
+Exit code = 1;  converg criter 1.0000e+01
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.50231  9.38604e+05 |
+
+Initial statistics: 3 variables; iteration 0; function evaluation 0; phase 2
+Function value 6.3781156e+08; maximum gradient component mag 2.3105e+10
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.87897  2.02666e+10 |  2 -0.87897  2.31048e+10 |  3 -0.50231 -2.99308e+06
+  ic > imax  in fminim is answer attained ?
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.91425 -2.17876e-01 |  2 -0.86911 -7.00965e-02 |  3 -0.50231 -4.91460e+05
+Function minimizer not making progress ... is minimum attained?
+Minimprove criterion = 0.0000e+00
+Warning: the following parameters had issues
+  MGparm[22] is within 1% of lower bound: 1.0000e-01 < 5.5240e-01 < 1.0000e+02
+
+
+ - final statistics:
+3 variables; iteration 10; function evaluation 58
+Function value -2.3021e+01; maximum gradient component mag -4.9146e+05
+Exit code = 1;  converg criter 1.0000e-04
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.91425 -2.17876e-01 |  2 -0.86911 -7.00965e-02 |  3 -0.50231 -4.91460e+05
+size of file gradfil1.tmp = 0
+size of file gradfil2.tmp = 0
+size of file varssave.tmp = 0
+size of file cmpdiff.tmp = 0

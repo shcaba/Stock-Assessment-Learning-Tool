@@ -43,7 +43,7 @@ function(input, output, session) {
     ssp.folder.names.in.status_prod<-ssp.folder.names[13:18]
     ssp.folder.names.in.scale_prod<-ssp.folder.names[9:12]
     
-    #SSP choices for user
+    #SSP choices for user and to be used in plots. These should read better.
     SSP_choices<-c(
                     "Status 20%",
                     "Status 60%",
@@ -184,14 +184,15 @@ function(input, output, session) {
   #)
 
   #ssp_summary<- SSsummarize(ssp.mod.prep)
-  #
+  
+    colnames(ssp_summary$SpawnBio)[1:(length(colnames(ssp_summary$SpawnBio))-2)]<-colnames(ssp_summary$Bratio)[1:(length(colnames(ssp_summary$Bratio))-2)]<-c("Status 40%",SSP_choices)
     mod_indices<-c(2:ssp_summary$n)[SSP_choices%in%input$myPicker_SSP_grouped]
     SpawnOutput<-melt(id.vars=c("Yr"),ssp_summary$SpawnBio[-nrow(ssp_summary$SpawnBio),c(1,mod_indices,ncol(ssp_summary$SpawnBio))],value.name="Scale")
     Bratio<-melt(id.vars=c("Yr"),ssp_summary$Bratio[-nrow(ssp_summary$Bratio),c(1,mod_indices,ncol(ssp_summary$Bratio))],value.name="Status")
     #Catches<-Catches[Catches$Model%in%c("Status40%",ssp.folder.names[SSP_choices%in%input$myPicker_SSP]),]
     Catches<-as.data.frame(Catches)
     Catches<-Catches[Catches$Model%in%c("Status 40%",input$myPicker_SSP_grouped),]
-    Catches$Model<-c("Status40%",ssp.folder.names[SSP_choices%in%input$myPicker_SSP_grouped])
+    Catches$Model<-c("Status 40%",SSP_choices[SSP_choices%in%input$myPicker_SSP_grouped])
       #try(SSplotComparisons(ssp_summary, subplots=c(1,3),legendlabels = c("Status40%",input$myPicker_SSP),endyrvec=2020, ylimAdj = 1.30, new = FALSE,plot=FALSE,print=TRUE, legendloc = 'topleft',uncertainty=TRUE,plotdir=paste0(Dir_SSP,"/Comparisons"),btarg=0.4,minbthresh=0.25))
 
     #Pull future catch values
@@ -261,7 +262,7 @@ function(input, output, session) {
 
     output$Proj <- renderPlotly({
       p_proj<-ggplot(Proj.rel.gg,aes(variable,value*100,color=metric))+
-        geom_point(aes(shape=metric))+
+        geom_point(aes(shape=metric),size=4)+
         xlab("Model")+
         ylab("% change relative to the 40% stock status model")+
         geom_hline(yintercept=0)+

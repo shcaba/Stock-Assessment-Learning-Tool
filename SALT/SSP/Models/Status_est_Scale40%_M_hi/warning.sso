@@ -1,0 +1,13 @@
+Warning 1 Adjustment: basis for HCR anchor was not set; setting to 2 to match default before 3.30.24
+Warning 2 : depletion_basis is using virgin but HCR anchor is using SSB_unf from benchmark. Are you sure?
+Warning 3 : First_Mature_Age read as:  0, which is unusual. Check logic of spawn_month and settlement time & age
+Warning 4 : Fleet:_1min bound on parameter for size at peak is 2; should be >= midsize bin 2 (5)
+Warning 5 : Fleet:_1max bound on parameter for size at peak is 74; should be <= midsize bin N-1 (73)
+Warning 6 : Fleet:_2min bound on parameter for size at peak is 2; should be >= midsize bin 2 (5)
+Warning 7 : Setting in starter does not request all priors, and 3 parameters have priors and are not estimated, so their prior not included in obj_fun.
+Warning 8 : Minimum pop size bin:_2; is > L at Amin for sex: 1; Gpat: 1; L= 0
+Warning 9 : Minimum pop size bin:_2; is > L at Amin for sex: 2; Gpat: 1; L= -4.10018
+Warning 10 : 1st iteration warning: catch logL > 50% total logL; check configuration; suggest start with larger R0
+Warning 11 : Final gradient: 492214 is larger than final_conv: 0.0001
+Note 1 Information: A revised protocol for the Fcast_yr specification is available and recommended.
+ 11 warnings  and 1 note 

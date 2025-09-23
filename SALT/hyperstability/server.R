@@ -191,6 +191,7 @@ server <- function(input, output, session) {
       "Mean Fish/Cell:", pop_stats$mean_fish, "\n",
       "Median Fish/Cell:", pop_stats$median_fish, "\n",
       "Std Dev:", pop_stats$sd_fish, "\n",
+      "CV:", round(pop_stats$sd_fish/pop_stats$mean_fish,2), "\n",
       "Range:", pop_stats$min_fish, "-", pop_stats$max_fish
     )
   })
@@ -209,6 +210,7 @@ server <- function(input, output, session) {
       "Mean Fish/Cell:", sample_stats$mean_fish, "\n",
       "Median Fish/Cell:", sample_stats$median_fish, "\n",
       "Std Dev:", sample_stats$sd_fish, "\n",
+      "CV:", round(sample_stats$sd_fish/sample_stats$mean_fish,2), "\n",
       "Range:", sample_stats$min_fish, "-", sample_stats$max_fish
     )
   })

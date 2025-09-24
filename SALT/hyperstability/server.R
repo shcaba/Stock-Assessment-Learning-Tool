@@ -3,28 +3,29 @@ server <- function(input, output, session) {
   # Generate fish data for 25 cells (5x5 grid)
   
   set.seed(runif(1,1,2000000))  # For reproducible results
-  #browser()
-  
+
   fish_data <- data.frame(
     cell_id = 1:25,
     row = rep(1:5, each = 5),
     col = rep(1:5, times = 5),
-    fish_count = sample(0:100, 25, replace = TRUE),
+    fish_count = sample(0:100, 25, replace = TRUE,prob = (c(0.05,rep(((1-0.05)/100),100)))),
     stringsAsFactors = FALSE
   )
   
   fish_data$fish_count<-round((fish_data$fish_count/sum(fish_data$fish_count))*1000,0)
   
   fish_data_use<-reactiveVal(fish_data)
+  pop_samples<-reactiveVal(data.frame(Sampled_pop="",True_pop=""))
   
-  #R
+  
+  #Set-up fishing cells with user defined population size
   observeEvent(input$pick_pop, {
-    set.seed(runif(1,1,2000000))
+    #set.seed(runif(1,1,2000000))
     fish_data <- data.frame(
       cell_id = 1:25,
       row = rep(1:5, each = 5),
       col = rep(1:5, times = 5),
-      fish_count = sample(0:100, 25, replace = TRUE),
+      fish_count = sample(0:100, 25, replace = TRUE,prob = (c(input$zero_cells,rep(((1-input$zero_cells)/100),100)))),
       stringsAsFactors = FALSE
     )
     fish_data$fish_count<-round((fish_data$fish_count/sum(fish_data$fish_count))*input$pop_size,0)
@@ -238,6 +239,20 @@ server <- function(input, output, session) {
              ifelse(abs(mean_error_pct) < 20, "Fair", "Poor"))
     )
   })
+  
+  #Capture index measures for chosen sampling
+  observeEvent(input$save_sample, {
+    #browser()
+    pop_stats <- population_summary()
+    sample_stats <- sample_summary()
+    pop_samples_cap<-rbind(pop_samples(),c(sample_stats$mean_fish,pop_stats$mean_fish))
+    #rownames(pop_samples_cap)<-c("Sampled Population","True Population")
+    pop_samples(pop_samples_cap)
+  })
+  
+  output$pop_samples_out <- renderTable({
+    pop_samples()
+    })
   
   # Data table for selected cells
   output$cell_table <- renderDT({

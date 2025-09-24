@@ -8,6 +8,7 @@ ui <- page_sidebar(
   sidebar = sidebar(
     h4("Setting population size"),
     numericInput("pop_size", "What is the starting population size?", value = 1000, min = 1, max = 100000000000, step = 1),
+    numericInput("zero_cells", "Probability of cells with zero fish?", value = 0.05, min = 0, max = 1, step = 1),
     #numericInput("mortality", "Do you want to apply a mortality rate?", value = 0, min = 1, max = 1, step = 0.001),
     actionButton("pick_pop", "Update population starting size", class = "btn-outline-secondary"),
     br(),
@@ -17,17 +18,18 @@ ui <- page_sidebar(
     actionButton("fish_hot", "Choose cells to fish hot spots", class = "btn-outline-secondary"),
     p("To mimic a survey, push the random sample button to get cells to sample"),
     actionButton("random_cells", "Choose cells to randomly select", class = "btn-outline-secondary"),
-    numericInput("cell_num", "How many cells?", value = 5, min = 0, max = 25, step = 1),
+    numericInput("cell_num", "How many cells to fish?", value = 5, min = 0, max = 25, step = 1),
     #   actionButton("select_all", "Select All", class = "btn-outline-primary"),
-    actionButton("clear_all", "Clear All", class = "btn-outline-secondary"),
+    actionButton("save_sample", "Save sample", class = "btn-outline-secondary"),
+    actionButton("clear_all", "Clear all selections", class = "btn-outline-secondary"),
     br(),
     #    verbatimTextOutput("random.cells.out"),
         #    br(), br(),
 #    h5("Selected Cells"),
 #    verbatimTextOutput("selected_cells_display"),
-#    br(),
-#    h5("Sample vs Population"),
-#    verbatimTextOutput("comparison_stats")
+    br(),
+    h5("Sample vs Population"),
+    tableOutput("pop_samples_out")
   ),
   
   # Main panel with grid visualization and comparison tables

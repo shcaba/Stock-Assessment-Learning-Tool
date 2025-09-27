@@ -11,39 +11,59 @@ ui <- page_sidebar(
   title = "Fisheries Threshold Control Rule",
   sidebar = sidebar(
     h4("Reference Points"),
+
+    # Stock status indicator
+    
+    h5("Current Stock Status"),
+    numericInput("current_stock", 
+                 "Current Stock Size (B/B0):", 
+                 value = 0.3, 
+                 min = 0.01, 
+                 max = 1.5, 
+                 step = 0.01),
     
     # Biomass reference points
-    h5("Biomass Reference Points"),
-    numericInput("b_target", 
-                 "Target Reference Point (B_target/B0):", 
-                 value = 0.4, 
-                 min = 0.1, 
-                 max = 0.8, 
-                 step = 0.01),
-
-        numericInput("b_limit", 
-                 "Limit Reference Point (B_limit/B0):", 
-                 value = 0.2, 
-                 min = 0.01, 
-                 max = 0.5, 
-                 step = 0.01),
-    
-    
-    # Fishing mortality/catch parameters
-    h5("Fishing Parameters"),
-    numericInput("f_target", 
-                 "Target Fishing Mortality (F_target):", 
+    h5("Reference Points"),
+    h6("Fishing target"),
+    numericInput("E_msy", 
+                 "Harvest rate at MSY (or proxy):", 
                  value = 0.3, 
                  min = 0.01, 
                  max = 1.0, 
                  step = 0.01),
+
+    h6("Biomass Reference Points relative to unfished"),
+    numericInput("b_target", 
+                 "Target Reference Point:", 
+                 value = 0.4, 
+                 min = 0.02, 
+                 max = 0.1, 
+                 step = 0.01),
+
+    numericInput("b_limit", 
+                 "Limit Reference Point:", 
+                 value = 0.25, 
+                 min = 0.01, 
+                 max = 1, 
+                 step = 0.01),
     
-    numericInput("max_catch", 
-                 "Maximum Catch (relative units):", 
-                 value = 1.0, 
-                 min = 0.1, 
-                 max = 2.0, 
-                 step = 0.1),
+    numericInput("b_nocatch", 
+                 "Zero Catch Point:", 
+                 value = 0.1, 
+                 min = 0.01, 
+                 max = 1, 
+                 step = 0.01),
+    
+    
+    # Fishing mortality/catch parameters
+
+    
+#    numericInput("max_catch", 
+#                 "Maximum Catch (relative units):", 
+#                 value = 1.0, 
+#                 min = 0.1, 
+#                 max = 2.0, 
+#                 step = 0.1),
     
     # Control rule shape
     h5("Control Rule Shape"),
@@ -54,16 +74,7 @@ ui <- page_sidebar(
                   "Hockey Stick" = "hockey",
                   "Smooth Transition" = "smooth"
                 ),
-                selected = "linear"),
-    
-    # Stock status indicator
-    h5("Current Stock Status"),
-    numericInput("current_stock", 
-                 "Current Stock Size (B/B0):", 
-                 value = 0.3, 
-                 min = 0.01, 
-                 max = 1.5, 
-                 step = 0.01)
+                selected = "linear")
   ),
   
   # Main panel with plot and information

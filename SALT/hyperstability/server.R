@@ -31,7 +31,7 @@ server <- function(input, output, session) {
     fish_data$fish_count<-round((fish_data$fish_count/sum(fish_data$fish_count))*input$pop_size,0)
     fish_data_use(fish_data)
     })
-  
+
   
   # Reactive values to store selected cells
   selected_cells <- reactiveVal(sample(1:25,5))  # Initial selection
@@ -253,7 +253,13 @@ server <- function(input, output, session) {
   output$pop_samples_out <- renderTable({
     pop_samples()
     })
+
+  #Clear the saved samples  
+  observeEvent(input$clear_samples, {
+    pop_samples(data.frame(Sampled_pop="",True_pop=""))
+  })
   
+    
   # Data table for selected cells
   output$cell_table <- renderDT({
     selected_data <- selected_fish_data()

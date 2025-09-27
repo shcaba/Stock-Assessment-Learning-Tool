@@ -7,32 +7,33 @@ ui <- page_sidebar(
   title = "Fishery dependent and independent population sampling",
   sidebar = sidebar(
     h4("Setting population size"),
-    numericInput("pop_size", "What is the starting population size?", value = 1000, min = 1, max = 100000000000, step = 1),
-    numericInput("zero_cells", "Probability of cells with zero fish?", value = 0.05, min = 0, max = 1, step = 1),
+    fluidRow(
+      column(width = 6,numericInput("pop_size", "Starting population size", value = 1000, min = 1, max = 100000000000, step = 1)),
+      column(width = 6,numericInput("zero_cells", "Probability of zero fish", value = 0.05, min = 0, max = 1, step = 1))),
     #numericInput("mortality", "Do you want to apply a mortality rate?", value = 0, min = 1, max = 1, step = 0.001),
-    actionButton("pick_pop", "Update population starting size", class = "btn-outline-secondary"),
-    br(),
+    actionButton("pick_pop", "Update cells", class = "btn-outline-secondary",style="color: #fff; background-color: #5D9741; border-color: #5D9741"),
     h4("Choosing the fishing spots"),
     p("Click on cells in the grid to select/deselect them for sampling."),
     p("To mimic a", tags$b(" fishery "), "go to the", tags$b(" hot spots ") ,"(i.e., the cells with the most fish)"),
-    actionButton("fish_hot", "Choose cells to fish hot spots", class = "btn-outline-secondary"),
-    p("To mimic a survey, push the random sample button to get cells to sample"),
-    actionButton("random_cells", "Choose cells to randomly select", class = "btn-outline-secondary"),
+    actionButton("fish_hot", "Choose hot spot cells", class = "btn-outline-secondary",style="color: #fff; background-color: red; border-color: #a4422e"),
+    p("To mimic a" , tags$b(" survey "), "push the",tags$b(" random sample "),"button to get cells to sample"),
+    actionButton("random_cells", "Choose random cells", class = "btn-outline-secondary",style="color: #fff; background-color: #005595; border-color: #2e6da4"),
     numericInput("cell_num", "How many cells to fish?", value = 5, min = 0, max = 25, step = 1),
     #   actionButton("select_all", "Select All", class = "btn-outline-primary"),
-    actionButton("save_sample", "Save sample", class = "btn-outline-secondary"),
-    actionButton("clear_all", "Clear all selections", class = "btn-outline-secondary"),
+    actionButton("save_sample", "Save sample", class = "btn-outline-secondary",style="color: #fff; background-color: #eb860c; border-color: #eb860c"),
+    actionButton("clear_all", "Clear all selections", class = "btn-outline-secondary",style="color: #fff; background-color: #585955; border-color: black"),
     br(),
     #    verbatimTextOutput("random.cells.out"),
         #    br(), br(),
 #    h5("Selected Cells"),
 #    verbatimTextOutput("selected_cells_display"),
     br(),
-    h5("Sample vs Population"),
-    tableOutput("pop_samples_out")
+    h4("Sample comparisons"),
+    tableOutput("pop_samples_out"),
+    actionButton("clear_samples", "Clear saved samples", class = "btn-outline-secondary",style="color: #fff; background-color: #585955; border-color: black")
   ),
   
-  # Main panel with grid visualization and comparison tables
+  # Main panel with fishing cells and comparison tables
 layout_columns(  
 card(
     card_header("Fish Population Grid (5x5) - Click cells to fish in (i.e., take samples)"),

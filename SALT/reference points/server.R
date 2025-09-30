@@ -12,12 +12,12 @@ server <- function(input, output, session) {
     req(input$b_nocatch, input$b_target, input$E_msy, 1)
     
     # Ensure b_target > b_nocatch
-    if (input$b_target <= input$b_nocatch) {
-      updateNumericInput(session, "b_target", value = input$b_nocatch + 0.1)
-    }
+#    if (input$b_target <= input$b_nocatch) {
+#      updateNumericInput(session, "b_target", value = input$b_nocatch + 0.1)
+#    }
     
     # Create sequence of stock sizes
-    stock_ratio <- seq(0, 1, by = 0.01)
+    stock_ratio <- round(seq(0, 1, by = 0.01),2)
     data.frame(
       stock_ratio = stock_ratio,
       catch = stock_ratio*input$E_msy
@@ -68,18 +68,20 @@ server <- function(input, output, session) {
   
   # Generate the control rule plot
   output$control_rule_plot <- renderPlot({
-    #browser()
     data <- control_rule_data()
     #Add threshhold option  
     data$thresh<-data$constant<-NA
     thresh.coefs<-coef(lm(c(0,data[data$stock_ratio==input$b_target,]$catch)~c(input$b_nocatch,input$b_target)))
     data$thresh[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]+thresh.coefs[1]
     data$constant[data$stock_ratio>=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio==input$b_target]+thresh.coefs[1]
-    
+
     p <- ggplot(data, aes(x = stock_ratio, y = catch)) +
-      geom_line(color = "#005595", size = 2) +
+      geom_line(color = "blue", size = 2) +
+      geom_line(aes(x = stock_ratio, y = catch*input$buffer),color = "#390878", size = 2,linetype="dotted") +
       geom_line(aes(x = stock_ratio, y = thresh),color = "orange", size = 2) +
-      geom_line(aes(x = stock_ratio, y = constant),color = "blue", size = 2) +
+      geom_line(aes(x = stock_ratio, y = thresh*input$buffer),color = "#390878", size = 2,linetype="dotted") +
+      geom_line(aes(x = stock_ratio, y = constant),color = "#005595", size = 2) +
+      geom_line(aes(x = stock_ratio, y = constant*input$buffer),color = "#390878", size = 2,linetype="dotted") +
       geom_point(aes(data[data$stock_ratio==input$current_stock,1],data[data$stock_ratio==input$current_stock,2]),size=5, color="black",fill="white")+
       #geom_abline(intercept = thresh.coefs[1],slope = thresh.coefs[2], 
       #           color = "orange", linetype = "dashed", size = 1) +
@@ -90,33 +92,44 @@ server <- function(input, output, session) {
       #geom_vline(xintercept = input$current_stock, 
       #           color = "orange", linetype = "solid", size = 1.5) +
       geom_hline(yintercept = 0, color = "black", linetype = "solid", alpha = 0.3) +
-      
+      coord_cartesian(clip = "off", ylim = c(-0.025*input$E_msy, input$E_msy)) +
+      xlim(0, 1)+ 
+    
       # Add reference point labels
-      annotate("text", x = input$b_limit, y = 0.05, 
+      annotate("text", x = input$b_limit, y = 0.025*input$E_msy, 
                label = paste("Limit RP =", input$b_limit), 
                color = "red", hjust = -0.1) +
-      annotate("text", x = input$b_target, y = 0.45,
+      annotate("text", x = input$b_target, y = 0.025*input$E_msy,
                label = paste("Target RP =", input$b_target), 
                color = "#5D9741", hjust = -0.1) +
-      annotate("text", x = input$current_stock, y = data[data$stock_ratio==input$current_stock,2] * 0.8, 
+      annotate("text", x = data$stock_ratio[93], y =input$E_msy ,
+               label = paste("Constant fishing rate"), 
+               color = "blue", hjust = 0.1) +
+      annotate("text", x = data$stock_ratio[97], y = max(data$constant,na.rm = TRUE),
+               label = paste("Constant catch"), 
+               color = "#005595", vjust = -1.5) +
+      annotate("text", x = input$b_nocatch, y = -0.025*input$E_msy,
+               label = paste("No catch =", input$b_nocatch), 
+               color = "black", hjust = -0.1) +
+      annotate("text", x = input$current_stock, y = data[data$stock_ratio==input$current_stock,2] * 1, 
                label = "Current Stock", 
-               color = "black", hjust = 0.5,vjust =-5) +
+               color = "black", hjust = 0.5,vjust =-2.5) +
       
       # Styling
       labs(
-        title = paste("Fisheries Control Rule -", stringr::str_to_title(input$rule_type), "Type"),
-        x = "Relative Stock Size (B/B₀)",
+        #title = paste("Fisheries Control Rule -", stringr::str_to_title(input$rule_type), "Type"),
+        title = paste("Harvest Control Rule"),
+        x = "Relative Stock Size (SB/SB₀)",
         y = "Relative Catch",
-        subtitle = "Red = Limit Reference Point, Green = Target Reference Point, Black = Current Stock"
+        subtitle = "Red = Limit Reference Point; Green = Target Reference Point; Black dot = Current Stock; Purple dots= Buffered catches rule"
       ) +
       theme_minimal(base_size = 14) +
       theme(
         plot.title = element_text(size = 16, face = "bold"),
         plot.subtitle = element_text(size = 12, color = "gray60"),
         panel.grid.minor = element_blank()
-      ) +
-      xlim(0, 1) +
-      ylim(0, input$E_msy)
+      ) 
+      #ylim(0, input$E_msy)
     
     # Add zone coloring
     p <- p + 
@@ -139,25 +152,46 @@ server <- function(input, output, session) {
       filter(abs(stock_ratio - input$current_stock) == min(abs(stock_ratio - input$current_stock))) %>%
       pull(catch) %>%
       first()
+    #browser()
     
+    data <- control_rule_data()
+    #Add threshhold option  
+    data$thresh<-data$constant<-NA
+    thresh.coefs<-coef(lm(c(0,data[data$stock_ratio==input$b_target,]$catch)~c(input$b_nocatch,input$b_target)))
+    data$thresh[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]+thresh.coefs[1]
+    data$constant[data$stock_ratio>=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio==input$b_target]+thresh.coefs[1]
+    
+    curr_stock_catch<-data[data$stock_ratio==input$current_stock,]
+    
+    paste0(
+      #"Overfishing limit at current stock size: ", round(current_catch, 3), " (relative units)\n",
+      "Overfishing limit (OFL) at current stock size: ", round(curr_stock_catch[2],3), " (relative units)\n",
+      "Threshhold control rule catch: ", round(curr_stock_catch[4],3), " (relative units)\n",
+      "Buffered catch (e.g., ABC): ", round(curr_stock_catch[4]*input$buffer,3), " (relative units)\n",
+      "Constant catch (catch at FMSY proxy at target biomass): ", round(curr_stock_catch[3]*input$buffer,3), " (relative units)\n"
+    )
+  })
+
+  output$stock_status_RPs <- renderText({
     status <- if (input$current_stock <= input$b_nocatch) {
       "CRITICAL - Below Limit Reference Point"
     } else if (input$current_stock < input$b_target) {
       "CAUTIOUS - Between Limit and Target"
     } else {
-      "HEALTHY - Above Target Reference Point"
+      "HEALTHY - At or above Target Reference Point"
     }
     
+    
     paste0(
+      "Current Stock Size (SB/SB₀): ", round(input$current_stock, 3), "\n",
       "Current Stock Status: ", status, "\n",
-      "Current Stock Size (B/B₀): ", round(input$current_stock, 3), "\n",
-      "Recommended Catch: ", round(current_catch, 3), " (relative units)\n",
-      "Limit Reference Point: ", input$b_nocatch, "\n",
+      "No Catch Point: ", input$b_nocatch, "\n",
+      "Limit (Overfished) Reference Point: ", input$b_limit, "\n",
       "Target Reference Point: ", input$b_target, "\n\n",
       "Management Zones:\n",
-      "• RED (0 - ", input$b_limit, "): Overfished - No fishing allowed\n",
+      "• RED (0 - ", input$b_limit, "): Overfished - rebuilding plan\n",
       "• YELLOW (", input$b_limit, " - ", input$b_target, "): Precautionary - Reduced fishing\n",
       "• GREEN (", input$b_target, "+): Healthy - Full fishing allowed"
     )
-  })
+  })  
 }

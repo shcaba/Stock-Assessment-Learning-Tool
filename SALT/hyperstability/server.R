@@ -15,7 +15,7 @@ server <- function(input, output, session) {
   fish_data$fish_count<-round((fish_data$fish_count/sum(fish_data$fish_count))*1000,0)
   
   fish_data_use<-reactiveVal(fish_data)
-  pop_samples<-reactiveVal(data.frame(Sampled_pop="",True_pop=""))
+  pop_samples<-reactiveVal(data.frame(Sampled="",Population=""))
   
   
   #Set-up fishing cells with user defined population size
@@ -256,7 +256,7 @@ server <- function(input, output, session) {
 
   #Clear the saved samples  
   observeEvent(input$clear_samples, {
-    pop_samples(data.frame(Sampled_pop="",True_pop=""))
+    pop_samples(data.frame(Sampled="",Population=""))
   })
   
     
@@ -277,5 +277,16 @@ server <- function(input, output, session) {
     datatable(display_data, 
               options = list(pageLength = 10, searching = FALSE),
               rownames = FALSE)
+  })
+  
+  output$index_plot <- renderPlotly({
+    browser()
+    plotdata<-pop_samples()
+    plotdata<-plotdata[-1,]
+    plot.index.s<-data.frame(Number=1:length(plotdata$Sampled),Index=as.numeric(plotdata$Sampled),Type="Sampled")
+    plot.index.p<-data.frame(Number=1:length(plotdata$Population),Index=as.numeric(plotdata$Population),Type="Population")
+    plot.index<-rbind(plot.index.s,plot.index.p)
+    
+    ggplot(plotdata,aes(x=Number,y=Index,color=Type))
   })
 }

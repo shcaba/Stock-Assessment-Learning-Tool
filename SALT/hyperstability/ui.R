@@ -43,9 +43,9 @@ card(
   ),
   layout_columns(
     card(
-      card_header("Sample vs Population"),
+      card_header("Sample Statistics (Selected cells)"),
       card_body(
-        verbatimTextOutput("comparison_stats")
+        verbatimTextOutput("sample_stats")
       )
     ),
     card(
@@ -55,12 +55,20 @@ card(
       )
     ),
     card(
-      card_header("Sample Statistics (Selected cells)"),
+      card_header("Sample vs Population"),
       card_body(
-        verbatimTextOutput("sample_stats")
+        verbatimTextOutput("comparison_stats")
       )
     ),
-    col_widths = c(12,12,12)
+    card(
+      card_header("Sample vs Population"),
+      card_body(
+        plotlyOutput("index_plot")
+      )
+    ),
+    col_widths = c(2,2,2),
+    #row_widths=c(2,2),
+    fill=FALSE
     ),
   )
 

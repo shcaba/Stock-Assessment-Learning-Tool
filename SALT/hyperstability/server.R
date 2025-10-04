@@ -1,3 +1,7 @@
+library(ggplot2)
+library(plotly)
+library(DT)
+
 server <- function(input, output, session) {
   
   # Generate fish data for 25 cells (5x5 grid)
@@ -182,7 +186,18 @@ server <- function(input, output, session) {
     mtext("Click on cells to toggle selection", side = 3, line = 0.5, cex = 0.8, col = "gray50")
   })
   
-  # Population statistics display
+  #Sample table
+  output$sample_table <- renderTable({
+    sample_stats <- sample_summary()
+    pop_stats <- population_summary()
+          sample_dt<-data.frame(Sample=c(sample_stats$cells_sampled,sample_stats$total_fish,sample_stats$mean_fish*25,sample_stats$mean_fish,sample_stats$median_fish,sample_stats$sd_fish,round(sample_stats$sd_fish/sample_stats$mean_fish,2),sample_stats$min_fish,sample_stats$max_fish),
+               Population=c(25,NA,pop_stats$total_fish,pop_stats$mean_fish,pop_stats$median_fish,pop_stats$sd_fish,round(pop_stats$sd_fish/pop_stats$mean_fish,2),pop_stats$min_fish, pop_stats$max_fish))
+    rownames(sample_dt)<-c("Total Cells","Sampled Fish","Total Fish","Mean Fish/Cell","Median Fish/Cell","Std Dev","CV","Sample min","Sample max")
+    sample_dt
+  }, rownames = TRUE
+)
+  
+    # Population statistics display
   output$population_stats <- renderText({
     pop_stats <- population_summary()
     
@@ -207,7 +222,8 @@ server <- function(input, output, session) {
     
     paste(
       "Sampled Cells:", sample_stats$cells_sampled, "\n",
-      "Total Fish:", sample_stats$total_fish, "\n",
+      "Total Fish Sampled:", sample_stats$total_fish, "\n",
+      "Total Fish Estimated:",sample_stats$mean_fish*25 , "\n",
       "Mean Fish/Cell:", sample_stats$mean_fish, "\n",
       "Median Fish/Cell:", sample_stats$median_fish, "\n",
       "Std Dev:", sample_stats$sd_fish, "\n",
@@ -242,7 +258,6 @@ server <- function(input, output, session) {
   
   #Capture index measures for chosen sampling
   observeEvent(input$save_sample, {
-    #browser()
     pop_stats <- population_summary()
     sample_stats <- sample_summary()
     pop_samples_cap<-rbind(pop_samples(),c(sample_stats$mean_fish,pop_stats$mean_fish))
@@ -261,32 +276,42 @@ server <- function(input, output, session) {
   
     
   # Data table for selected cells
-  output$cell_table <- renderDT({
-    selected_data <- selected_fish_data()
+#  output$cell_table <- renderDT({
+#    selected_data <- selected_fish_data()
     
-    if(nrow(selected_data) == 0) {
-      return(data.frame(Message = "No cells selected"))
-    }
+#    if(nrow(selected_data) == 0) {
+#      return(data.frame(Message = "No cells selected"))
+#    }
     
-    # Format the data for display
-    display_data <- selected_data
-    display_data$position <- paste("Row", display_data$row, "Col", display_data$col)
-    display_data <- display_data[, c("cell_id", "position", "fish_count")]
-    names(display_data) <- c("Cell ID", "Position", "Fish Count")
+#    # Format the data for display
+#    display_data <- selected_data
+#    display_data$position <- paste("Row", display_data$row, "Col", display_data$col)
+#    display_data <- display_data[, c("cell_id", "position", "fish_count")]
+#    names(display_data) <- c("Cell ID", "Position", "Fish Count")
     
-    datatable(display_data, 
-              options = list(pageLength = 10, searching = FALSE),
-              rownames = FALSE)
-  })
+#    datatable(display_data, 
+#              options = list(pageLength = 10, searching = FALSE),
+#              rownames = FALSE)
+#  })
   
   output$index_plot <- renderPlotly({
-    browser()
+    #browser()
     plotdata<-pop_samples()
-    plotdata<-plotdata[-1,]
-    plot.index.s<-data.frame(Number=1:length(plotdata$Sampled),Index=as.numeric(plotdata$Sampled),Type="Sampled")
-    plot.index.p<-data.frame(Number=1:length(plotdata$Population),Index=as.numeric(plotdata$Population),Type="Population")
-    plot.index<-rbind(plot.index.s,plot.index.p)
-    
-    ggplot(plotdata,aes(x=Number,y=Index,color=Type))
+    if(any(plotdata>0))
+      {
+      plotdata<-plotdata[-1,]
+      plot.index.s<-data.frame(Sample=1:length(plotdata$Sampled),Index=as.numeric(plotdata$Sampled),Type="Sampled")
+      plot.index.p<-data.frame(Sample=1:length(plotdata$Population),Index=as.numeric(plotdata$Population),Type="Population")
+      plot.index<-rbind(plot.index.s,plot.index.p)
+      
+      index_plot<-ggplot(plot.index,aes(x=Sample,y=Index,color=Type))+
+        geom_point(aes(shape=Type))+
+        geom_smooth(method='lm', formula= y~x)+
+        ylim(c(0,NA))+
+        guides(color = "none")+
+        theme_bw()
+      
+      index_plot
+      }
   })
 }

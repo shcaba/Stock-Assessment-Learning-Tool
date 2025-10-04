@@ -1,7 +1,7 @@
 library(shiny)
 library(bslib)
 library(DT)
-
+library(plotly)
 
 ui <- page_sidebar(
   title = "Fishery dependent and independent population sampling",
@@ -39,39 +39,45 @@ card(
     card_header("Fish Population Grid (5x5) - Click cells to fish in (i.e., take samples)"),
     card_body(
       plotOutput("grid_plot",width="800px", height = "800px", click = "plot_click")
-    )
+    ),
   ),
   layout_columns(
     card(
-      card_header("Sample Statistics (Selected cells)"),
+      card_header("Sample Statistics"),
       card_body(
-        verbatimTextOutput("sample_stats")
+        tableOutput("sample_table")
       )
     ),
-    card(
-      card_header("Population Statistics (All 25 cells)"),
-      card_body(
-        verbatimTextOutput("population_stats")
-      )
-    ),
-    card(
-      card_header("Sample vs Population"),
-      card_body(
-        verbatimTextOutput("comparison_stats")
-      )
-    ),
-    card(
+    # card(
+    #   card_header("Sample Statistics (Selected cells)"),
+    #   card_body(
+    #     verbatimTextOutput("sample_stats")
+    #   )
+    # ),
+    # card(
+    #   card_header("Population Statistics (All 25 cells)"),
+    #   card_body(
+    #     verbatimTextOutput("population_stats")
+    #   )
+    # ),
+    # col_widths = c(3,3),
+  ),
+),
+layout_columns(
+  card(
       card_header("Sample vs Population"),
       card_body(
         plotlyOutput("index_plot")
-      )
-    ),
-    col_widths = c(2,2,2),
-    #row_widths=c(2,2),
-    fill=FALSE
-    ),
+      ),
+  ),
+      card(
+        card_header("Sample vs Population"),
+        card_body(
+          verbatimTextOutput("comparison_stats")
+        )
+      ),
+  col_widths = c(8,4),
   )
-
 #  layout_columns(
 #  )  
 #  card(

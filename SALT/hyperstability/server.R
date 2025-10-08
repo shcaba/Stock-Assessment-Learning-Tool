@@ -306,7 +306,7 @@ server <- function(input, output, session) {
       
       index_plot<-ggplot(plot.index,aes(x=Sample,y=Index,color=Type))+
         geom_point(aes(shape=Type))+
-        geom_smooth(method='lm', formula= y~x)+
+        geom_smooth(method='lm', formula= y~x, se=FALSE)+
         ylim(c(0,NA))+
         guides(color = "none")+
         theme_bw()

@@ -1,0 +1,21 @@
+
+Initial statistics: 1 variables; iteration 0; function evaluation 0; phase 1
+Function value 1.2808187e+10; maximum gradient component mag 2.1524e+09
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.19398  2.15239e+09 |
+  ic > imax  in fminim is answer attained ?
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.52151 -2.20499e-04 |
+Function minimizer not making progress ... is minimum attained?
+Minimprove criterion = 0.0000e+00
+
+ - final statistics:
+1 variables; iteration 6; function evaluation 56
+Function value -2.3021e+01; maximum gradient component mag -2.2050e-04
+Exit code = 1;  converg criter 1.0000e-04
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.52151 -2.20499e-04 |
+size of file gradfil1.tmp = 0
+size of file gradfil2.tmp = 0
+size of file varssave.tmp = 0
+size of file cmpdiff.tmp = 0

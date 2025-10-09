@@ -1,0 +1,28 @@
+Iter Objective_function  SR_LN(R0)
+0 -23.0208 2.6942 
+Iter Objective_function  SR_LN(R0)
+0 -23.0208 2.6942 
+Iter Objective_function  SR_LN(R0)
+0 -23.0208 2.6942 
+Iter Objective_function  SR_LN(R0)
+0 -23.0208 2.6942 
+Iter Objective_function  SR_LN(R0)
+0 -23.0208 2.6942 
+Iter Objective_function  SR_LN(R0) Size_DblN_end_logit_Commercial(1)
+0 -23.0208 2.69421 2.5 
+Iter Objective_function  SR_LN(R0) Size_DblN_end_logit_Commercial(1) Size_DblN_end_logit_Recreational(2)
+0 -23.0208 2.69421 2.5 2.50005 
+Iter Objective_function  SR_LN(R0)
+0 -23.0208 2.6942 
+Iter Objective_function  SR_LN(R0)
+0 2.40226e+09 2.90336 
+Iter Objective_function  SR_LN(R0)
+0 2.40226e+09 2.90336 
+Iter Objective_function  SR_LN(R0)
+0 2.40226e+09 2.90336 
+Iter Objective_function  SR_LN(R0)
+0 2.40226e+09 2.90336 
+Iter Objective_function  Catch_Mult:_1_Commercial Catch_Mult:_2_Recreational SR_LN(R0)
+0 -23.0208 0.76744 0.870471 2.90336 
+Iter Objective_function  Catch_Mult:_1_Commercial Catch_Mult:_2_Recreational SR_LN(R0)
+0 -23.0209 1.33249 1.4953 2.90336 

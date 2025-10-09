@@ -1,0 +1,18 @@
+
+Initial statistics: 1 variables; iteration 0; function evaluation 0; phase 1
+Function value 4.1364362e+09; maximum gradient component mag 9.2198e+08
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.19398  9.21984e+08 |
+
+Function minimizer: Step size too small -- ialph=1
+
+ - final statistics:
+1 variables; iteration 5; function evaluation 23
+Function value -2.3021e+01; maximum gradient component mag -2.1109e-04
+Exit code = 3;  converg criter 1.0000e-04
+Var    Value     Gradient |Var    Value     Gradient |Var    Value     Gradient
+  1 -0.52981 -2.11086e-04 |
+size of file gradfil1.tmp = 0
+size of file gradfil2.tmp = 0
+size of file varssave.tmp = 0
+size of file cmpdiff.tmp = 0

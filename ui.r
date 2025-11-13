@@ -16,7 +16,7 @@ ui <- page_navbar(
     value = "home",
     div(
       class = "container-fluid mt-4",
-      h1("Welcome to Stock Assessment Learning Tool (SALT)", class = "text-center mb-5"),
+      h1("Welcome to the Stock Assessment Learning Tool (SALT)", class = "text-center mb-5"),
       p("Click on any of the below topics to explore different features:", 
         class = "text-center lead mb-5"),
       
@@ -83,7 +83,7 @@ ui <- page_navbar(
             card(
               card_header(
                 div(
-                  bs_icon("file-earmark-bar-graph", size = "3em", class = "text-success mb-3"),
+                  tags$img(src = "sampling.png", height = "100px", width = "300px"),
                   h3("Sampling abundance", class = "card-title")
                 )
               ),
@@ -120,7 +120,7 @@ ui <- page_navbar(
         )
       ),
 
-# Reporting Card
+# Reference Points
 div(
   class = "col-md-4",
   actionButton(
@@ -129,7 +129,7 @@ div(
       card(
         card_header(
           div(
-            bs_icon("file-earmark-bar-graph", size = "3em", class = "text-success mb-3"),
+            tags$img(src = "RefPts.png", height = "100px", width = "300px"),
             h3("Reference Points", class = "card-title")
           )
         ),
@@ -143,21 +143,21 @@ div(
   )
 ),
 
-        # Reporting Card
+        # Baseline shifter
         div(
           class = "col-md-4",
           actionButton(
-            "goto_reports",
+            "goto_baseline",
             label = div(
               card(
                 card_header(
                   div(
                     bs_icon("file-earmark-bar-graph", size = "3em", class = "text-success mb-3"),
-                    h3("Reports", class = "card-title")
+                    h3("Baseline shifter", class = "card-title")
                   )
                 ),
                 card_body(
-                  p("Generate comprehensive reports and download summary statistics.")
+                  p("Explore our preception of stock abundance and health when we have longer or shorter data sets of and/or experiences with the population and its dyanmics.")
                 )
               )
             ),
@@ -166,32 +166,14 @@ div(
           )
         ),
         
-        # Settings Card
-        div(
-          class = "col-md-4",
-          actionButton(
-            "goto_settings",
-            label = div(
-              card(
-                card_header(
-                  div(
-                    bs_icon("gear", size = "3em", class = "text-warning mb-3"),
-                    h3("Settings", class = "card-title")
-                  )
-                ),
-                card_body(
-                  p("Configure application preferences and user account settings.")
-                )
-              )
-            ),
-            class = "btn btn-link p-0 w-100",
-            style = "text-decoration: none; color: inherit;"
-          )
-        )
+
       )
     )
   ),
-  
+
+
+#Set-up side panel
+
   # Data Analysis tab
   nav_panel(
     title = "Life History",
@@ -606,39 +588,40 @@ nav_panel(
     ))
   ),
   
-  # Settings tab
+  # Baseline Shifter tab
   nav_panel(
-    title = "Settings",
-    value = "settings",
-    card(
-      card_header("Application Settings"),
-      card_body(
-        h4("Configuration Options"),
-        br(),
-        div(
-          class = "row",
-          div(
-            class = "col-md-6",
-            h5("Display Settings"),
-            checkboxInput("dark_mode", "Enable Dark Mode", FALSE),
-            selectInput("language", "Language:", 
-                        choices = c("English" = "en", "Spanish" = "es", "French" = "fr"))
-          ),
-          div(
-            class = "col-md-6",
-            h5("Notification Settings"),
-            checkboxInput("email_notifications", "Email Notifications", TRUE),
-            checkboxInput("push_notifications", "Push Notifications", FALSE)
-          )
+    title = "Basline",
+    value = "baseline",
+    fluidPage(
+      
+      # Application title
+      titlePanel("What is our perception of stock status?"),
+      
+      # Sidebar with a slider input for number of bins
+      sidebarLayout(
+        sidebarPanel(
+          h4(strong(em("Choose a stock"))),
+          
+          h4(strong(em("Choose a year to compare all values"))),
+          fluidRow(column(width = 6, numericInput("Year_comp", "Year for comparison", value = 2000, min = 0, max = 2030, step = 1)))
+          
         ),
-        br(),
-        actionButton("save_settings", "Save Settings", class = "btn-primary"),
-        br(), br(),
-        actionButton("back_to_home_3", "← Back to Home", class = "btn-outline-primary")
+        
+        # Show a plot of the generated distribution
+        mainPanel(
+          h4(strong("Time series of population outputs relative to a chosen year")),
+          h4("Horizontal and vertical lines intersect at the chosen year (i.e., a relative value of 1)"),
+          h4("Hover the pointer over any series and point to get the specific values"),
+          plotlyOutput("CompPlot")
+          #          plotlyOutput("DepPlot"),
+          #          plotlyOutput("SpawnOutPlot"),
+          #         plotlyOutput("SummaryBPlot"),
+          #          plotlyOutput("TotalBPlot")
+        )
       )
     )
   ),
-  
+
   id = "navbar"
  )
 

@@ -1167,8 +1167,79 @@ server <- function(input, output, session) {
   #   nav_select("navbar", "reports4")
   # })
   
-  observeEvent(input$goto_settings, {
-    nav_select("navbar", "settings")
+  observeEvent(input$goto_baseline, {
+    nav_select("navbar", "baseline")
+    spp.out<-SS_output(paste0(getwd(),"/Spp_Reports/REBS_2025"))
+    observe({
+      
+      Spp.dervout <- data.frame(Year=spp.out$timeseries$Yr,TotalB=spp.out$timeseries$Bio_all,SummaryB=spp.out$timeseries$Bio_smry,SpawnOut<-spp.out$timeseries$SpawnBio,Dep<-spp.out$timeseries$SpawnBio/spp.out$timeseries$SpawnBio[1])
+      
+      
+      if(!any(spp.out$timeseries$Yr==input$Year_comp))
+      {
+        Spp.dervout.gg <- rbind(data.frame(Year=spp.out$timeseries$Yr,Value=spp.out$timeseries$Bio_all/spp.out$timeseries$Bio_all[1],Metric="Total Biomass"),
+                                data.frame(Year=spp.out$timeseries$Yr,Value=spp.out$timeseries$Bio_smry/spp.out$timeseries$Bio_smry[1],Metric="Summary Biomass"),
+                                data.frame(Year=spp.out$timeseries$Yr,Value=spp.out$timeseries$SpawnBio/spp.out$timeseries$SpawnBio[1],Metric="Spawning Output"))
+      }
+      
+      if(any(spp.out$timeseries$Yr==input$Year_comp))
+      {
+        Spp.dervout.gg <- rbind(data.frame(Year=spp.out$timeseries$Yr,Value=spp.out$timeseries$Bio_all/spp.out$timeseries$Bio_all[spp.out$timeseries$Yr==input$Year_comp],Metric="Total Biomass"),
+                                data.frame(Year=spp.out$timeseries$Yr,Value=spp.out$timeseries$Bio_smry/spp.out$timeseries$Bio_smry[spp.out$timeseries$Yr==input$Year_comp],Metric="Summary Biomass"),
+                                data.frame(Year=spp.out$timeseries$Yr,Value=spp.out$timeseries$SpawnBio/spp.out$timeseries$SpawnBio[spp.out$timeseries$Yr==input$Year_comp],Metric="Spawning Output"))
+      }
+      output$CompPlot <- renderPlotly({
+        comp1<-ggplot(Spp.dervout.gg,aes(Year,Value,col=Metric))+
+          geom_line(lwd=1.25)+
+          ylab("Value relative to chosen year")+
+          ylim(0,NA)+
+          geom_hline(yintercept=1,col="orange",linetype="dashed")+
+          geom_vline(xintercept=input$Year_comp,col="orange",linetype="dashed")+
+          theme_bw()
+        
+        ggplotly(comp1)
+      })
+      
+      
+      output$DepPlot <- renderPlotly({
+        p1<-ggplot(Spp.dervout,aes(Year,Dep))+
+          geom_line(lwd=1.25)+
+          ylab("Relative Stock Status")+
+          ylim(0,NA)+
+          theme_bw()
+        ggplotly(p1)
+      })
+      
+      output$SpawnOutPlot <- renderPlotly({
+        p2<-ggplot(Spp.dervout,aes(Year,SpawnOut))+
+          geom_line(lwd=1.25)+
+          ylab("Spawning Output")+
+          ylim(0,NA)+
+          theme_bw()
+        ggplotly(p2)
+      })
+      
+      output$SummaryBPlot <- renderPlotly({
+        p3<-ggplot(Spp.dervout,aes(Year,SummaryB))+
+          geom_line(lwd=1.25)+
+          ylab("Summary Biomass")+
+          ylim(0,NA)+
+          theme_bw()
+        ggplotly(p3)
+      })
+      
+      
+      output$TotalBPlot <- renderPlotly({
+        p4<-ggplot(Spp.dervout,aes(Year,TotalB))+
+          geom_line(lwd=1.25)+
+          ylab("Total Biomass")+
+          ylim(0,NA)+
+          theme_bw()
+        ggplotly(p4)
+      })
+      
+    }) 
+    
   })
   
   # Back to home buttons
@@ -1184,27 +1255,5 @@ server <- function(input, output, session) {
     nav_select("navbar", "home")
   })
   
-  # Sample plot for data analysis tab
-  output$sample_plot <- renderPlot({
-    plot(mtcars$mpg, mtcars$wt, 
-         main = "Sample Data Visualization",
-         xlab = "Miles per Gallon", 
-         ylab = "Weight",
-         pch = 19, col = "steelblue")
-  })
-  
-  # Download handler for reports
-  output$download_report <- downloadHandler(
-    filename = function() {
-      paste("sample_report_", Sys.Date(), ".txt", sep = "")
-    },
-    content = function(file) {
-      writeLines("This is a sample report generated from the Shiny app.", file)
-    }
-  )
-  
-  # Settings save functionality
-  observeEvent(input$save_settings, {
-    showNotification("Settings saved successfully!", type = "success")
-  })
+
 }

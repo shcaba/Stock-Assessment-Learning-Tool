@@ -9,8 +9,10 @@ library(ggplot2)
 ui <- page_navbar(
   title = "Stock Assessment Learning Tool",
   theme = bs_theme(bootswatch = "flatly"),
-  
-  # Landing page tab
+
+####################  
+# Landing page tab #
+####################
   nav_panel(
     title = "Homeport",
     value = "home",
@@ -24,7 +26,9 @@ ui <- page_navbar(
       div(
         class = "row g-4",
         
-        # Life History Parameters Card
+################################
+# Life History Parameters Card #
+################################
         div(
           class = "col-md-4",
           actionButton(
@@ -48,7 +52,9 @@ ui <- page_navbar(
           )
         ),
 
-# Selectivity Card
+####################
+# Selectivity Card #
+####################
         div(
           class = "col-md-4",
           actionButton(
@@ -73,8 +79,9 @@ ui <- page_navbar(
           )
         ),
 
-
-      # Abundance sampling
+######################
+# Abundance sampling #
+######################
       div(
         class = "col-md-4",
         actionButton(
@@ -97,7 +104,9 @@ ui <- page_navbar(
         )
       ),
 
-      # Scale, Status, Productivity
+###############################
+# Scale, Status, Productivity #
+###############################
       div(
         class = "col-md-4",
         actionButton(
@@ -120,7 +129,9 @@ ui <- page_navbar(
         )
       ),
 
-# Reference Points
+####################
+# Reference Points #
+####################
 div(
   class = "col-md-4",
   actionButton(
@@ -143,7 +154,9 @@ div(
   )
 ),
 
-        # Baseline shifter
+####################
+# Baseline shifter #
+####################
         div(
           class = "col-md-4",
           actionButton(
@@ -171,10 +184,15 @@ div(
     )
   ),
 
+####################
+####################
+#Set-up side panel #
+####################
+####################
 
-#Set-up side panel
-
-  # Data Analysis tab
+#####################
+# Life History tab #
+#####################
   nav_panel(
     title = "Life History",
     value = "LHP",
@@ -242,7 +260,9 @@ div(
     )
   ),
   
-# Selectivity tab
+###################
+# Selectivity tab #
+###################
 nav_panel(
   title = "Selectivity",
   value = "selectivity",
@@ -325,7 +345,9 @@ nav_panel(
   )
   ),
 
-# Abundance sampling
+######################
+# Abundance sampling #
+######################
 nav_panel(
   title = "Sampling abundance",
   value = "abundance",
@@ -407,7 +429,9 @@ nav_panel(
    )
   ),
 
-# SSP tab
+###########
+# SSP tab #
+###########
 nav_panel(
   title = "SSP",
   value = "SSP",
@@ -432,8 +456,8 @@ nav_panel(
       
       tags$h3("There are three main concepts that help us interpret stock assessments:"),
       tags$ul(
-        tags$li(tags$b("Stock status"),"-- typically a relative size/percentage of the population to an unfished or size at maximum sustainable yield-- is a basic output of stock assessment. It provides the indicator of stock health."),
         tags$li(tags$b("Stock scale or size"),"-- the absolute amount of the stock in either biomass or numbers-- allows for the understanding of fishing rates."),
+        tags$li(tags$b("Stock status"),"-- typically a relative size/percentage of the population to an unfished or size at maximum sustainable yield-- is a basic output of stock assessment. It provides the indicator of stock health."),
         tags$li(tags$b("Productivity"),"-- how fast a population can ultimately growth in status and scale. This include mortality, growth, maturity, and recruitment capacity.")
       ),
       
@@ -451,14 +475,7 @@ nav_panel(
       
       br(),
       h4("Choose changes to the reference model to explore"),
-      uiOutput("SSP_model_picks_grouped"),
-      #          fluidRow(
-      #            column(width = 2, uiOutput("SSP_model_picks_status")),
-      #            column(width = 2, uiOutput("SSP_model_picks_scale")),
-      #            column(width = 2, uiOutput("SSP_model_picks_prod")),
-      #            column(width = 3, uiOutput("SSP_model_picks_status_prod")),
-      #            column(width = 3, uiOutput("SSP_model_picks_scale_prod"))
-      #            ),
+      uiOutput("SSP_model_picks_groupedII"),
       br(),
       actionButton("run_SSP_comps", strong("Run Comparisons"),
                    width = "100%",
@@ -479,8 +496,9 @@ nav_panel(
   )
 ),
 
-
-# Reference points tab
+########################
+# Reference points tab #
+########################
 nav_panel(
   title = "Reference Points",
   value = "refpts",
@@ -588,7 +606,9 @@ nav_panel(
     ))
   ),
   
-  # Baseline Shifter tab
+########################
+# Baseline Shifter tab #
+########################
   nav_panel(
     title = "Basline",
     value = "baseline",

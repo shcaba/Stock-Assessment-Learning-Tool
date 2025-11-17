@@ -18,8 +18,9 @@ server <- function(input, output, session) {
   #   nav_select("navbar", "reports")
   # })
 
-  
-  # Navigation from landing page cards
+####################
+# Life history tab #
+####################
   observeEvent(input$goto_LHP, {
     nav_select("navbar", "LHP")
     # Reactive data generation
@@ -132,6 +133,9 @@ server <- function(input, output, session) {
   #   nav_select("navbar", "reports")
   # })
 
+###############
+# Selectivity #
+###############
     observeEvent(input$goto_selectivity, {
     nav_select("navbar", "selectivity")
       
@@ -368,7 +372,9 @@ server <- function(input, output, session) {
       )
         })
 
-  #Sampling abundance
+######################
+# Sampling abundance #
+######################
   observeEvent(input$goto_abundance, {
     nav_select("navbar", "abundance")
     set.seed(runif(1,1,2000000))  # For reproducible results
@@ -683,6 +689,9 @@ server <- function(input, output, session) {
     
     })
 
+###############################
+# Scale, Status, Productivity #
+###############################
   observeEvent(input$goto_ssp, {
     nav_select("navbar", "SSP")
     #Folder names
@@ -827,14 +836,20 @@ server <- function(input, output, session) {
       )
     })
     
-    
-    
-    
-    
+    output$SSP_model_picks_groupedII<-renderUI({
+    selectInput("myPicker_SSP_grouped", "Organized by change in the model:",
+                list(
+                  "Status"= SSP_choices.in.status,
+                  "Scale"= SSP_choices.in.scale,
+                  "Productivity"= SSP_choices.in.prod,
+                  "Status and productivity"= SSP_choices.in.status_prod,
+                  "Scale and productivity" = SSP_choices.in.scale_prod),
+                multiple=TRUE)
+    })
+        
     #load model summaries
-    
-    
     observeEvent(req(input$run_SSP_comps),{
+      print(c(SSP_choices.in.status,SSP_choices.in.scale,SSP_choices.in.prod,SSP_choices.in.status_prod,SSP_choices.in.scale_prod))
       load(paste0(getwd(),"/mod_summary.RDS"))  
       load(paste0(getwd(),"/Catches.RDS"))
       #myPicker_SSP<-c(input$myPicker_SSP_status,input$myPicker_SSP_scale,input$myPicker_SSP_prod,input$myPicker_SSP_status_prod,input$myPicker_SSP_scale_prod)
@@ -969,8 +984,9 @@ server <- function(input, output, session) {
 
 
   
-  
-#Refernce Points and Control Rules  
+#####################################  
+# Reference Points and Control Rules #
+#####################################
   observeEvent(input$goto_refpts, {
     nav_select("navbar", "refpts")
     # Reactive function to calculate control rule

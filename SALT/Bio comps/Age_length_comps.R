@@ -75,7 +75,7 @@ calculate_stock_status <- function(fished_pop, unfished_pop, L50,L95) {
   # Spawning biomass (assuming weight proportional to length^3 and maturity at 50% Linf)
   fished_pop$weight <- 0.000001*fished_pop$length^3
   unfished_pop$weight <- 0.000001*unfished_pop$length^3
-  #browser()
+  
   # Assume 50% maturity at 65% of Linf
 #  maturity_length50 <- max(fished_pop$length) * 0.65
 #  maturity_length95 <- max(fished_pop$length) * 0.80
@@ -282,9 +282,9 @@ server <- function(input, output, session) {
     pops <- populations()
     
     #Mean Age
-    age_data_fished<-do.call(c,mapply(function(x) rep(pops$fished$age[x],round(pops$fished$numbers[x]*pops$fished$selectivity[x],0)),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
+    age_data_fished<-do.call(c,mapply(function(x) rep(pops$fished$age[x],round(pops$fished$numbers[x],0)),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
     age_data_fish_df<-data.frame(age=age_data_fished,population="Fished")
-    age_data_unfished<-do.call(c,mapply(function(x) rep(pops$unfished$age[x],round(pops$unfished$numbers[x]*pops$fished$selectivity[x],0)),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
+    age_data_unfished<-do.call(c,mapply(function(x) rep(pops$unfished$age[x],round(pops$unfished$numbers[x],0)),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
     age_data_unfish_df<-data.frame(age=age_data_unfished,population="Unfished")
     mean_age_status<-mean(age_data_fish_df$age)/mean(age_data_unfish_df$age)
     
@@ -330,7 +330,7 @@ server <- function(input, output, session) {
     ggplotly(p, tooltip = c("x", "y", "colour"))
   })
   
-  # Age compositions
+  # Selected Age compositions
   output$age_sel_plot <- renderPlotly({
     pops <- populations()
 
@@ -491,21 +491,26 @@ server <- function(input, output, session) {
     #Ages
     age_data_fished<-do.call(c,mapply(function(x) rep(pops$fished$age[x],round(pops$fished$numbers[x]*pops$fished$selectivity[x],0)),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
     age_data_fish_df<-data.frame(age=age_data_fished,population="Fished")
-    age_data_unfished<-do.call(c,mapply(function(x) rep(pops$unfished$age[x],round(pops$unfished$numbers[x]*pops$fished$selectivity[x],0)),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
+    age_data_unfished<-do.call(c,mapply(function(x) rep(pops$unfished$age[x],round(pops$unfished$numbers[x],0)),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
     age_data_unfish_df<-data.frame(age=age_data_unfished,population="Unfished")
+    age_data_df<-rbind(age_data_fish_df,age_data_unfish_df)
     
     #Lengths
-    lt_data_fished<-do.call(c,mapply(function(x) rnorm(round(pops$fished$numbers[x],0),pops$fished$length[x],pops$fished$length[x]*0.1),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
+    lt_data_fished<-do.call(c,mapply(function(x) rnorm(round(pops$fished$numbers[x]*pops$fished$selectivity[x],0),pops$fished$length[x],pops$fished$length[x]*0.1),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
     lt_data_fish_df<-data.frame(length=lt_data_fished,population="Fished")
     lt_data_unfished<-do.call(c,mapply(function(x) rnorm(round(pops$unfished$numbers[x],0),pops$unfished$length[x],pops$unfished$length[x]*0.1),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
     lt_data_unfish_df<-data.frame(length=lt_data_unfished,population="Unfished")
+    lt_data_df<-rbind(lt_data_fish_df,lt_data_unfish_df)
+    
+    age_lt_data_df<-cbind(age_data_df$age,lt_data_df)
+    colnames(age_lt_data_df)[1]<-"age"
     
     #Calculate age at maturity lengths
     age.mat<-input$t0 - (log(1 - (c(input$L50,input$L95) / input$Linf)) / input$K)
     age.lt.mat<-data.frame(Age=age.mat,Length=c(input$L50,input$L95))
     
     data <- populations()$unfished
-    #browser()
+   
     # Create the plot with dual y-axes
     # First, we need to scale the population data to fit with length data
     length_range <- range(data$length)
@@ -514,14 +519,15 @@ server <- function(input, output, session) {
     # Scale population to length scale for plotting
     pop_scaled <- (data$numbers/1000 - pop_range[1]) / (pop_range[2] - pop_range[1]) * 
       (length_range[2] - length_range[1]) + length_range[1]
-    #pop_scaled <-data$numbers/1000
     color.line.in<-viridis(3)
+    
     # Create the plot
     p<-ggplot(data, aes(x = age)) +
-      geom_line(aes(y = length, color = "Length"), size = 1.2) +
-      geom_point(aes(y = length, color = "Length"), size = 2) +
       geom_line(aes(y = pop_scaled, color = "Population"), size = 1.2, linetype = "dashed") +
       geom_point(aes(y = pop_scaled, color = "Population"), size = 2, shape = 17) +
+      geom_point(data=age_lt_data_df,aes(age,length),col="gray")+
+      geom_line(aes(y = length, color = "Length"), size = 1.2) +
+      geom_point(aes(y = length, color = "Length"), size = 2) +
       geom_point(data=age.lt.mat, aes(x = Age,y=Length), size = 5, shape = 21,col="black",fill="lightblue") +
       annotate("text",age.lt.mat$Age+(5.4/input$M)*0.08,age.lt.mat$Length,label=c("Lmat50%","Lmat95%"))+
       

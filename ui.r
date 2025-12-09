@@ -224,11 +224,10 @@ div(
     title = "Life History",
     value = "LHP",
     page_sidebar(
-      title = "Life History Parameters",
+      title = "Life History Parameters: Choose values for each life history parameter and see how the relationships change",
       
       sidebar = sidebar(
         width = 350,
-        
         #  Parameters
         
         #Natural Mortality & Growth (von Bertalanffy) Parameters 
@@ -294,10 +293,10 @@ nav_panel(
   title = "Selectivity",
   value = "selectivity",
   page_sidebar(
-    title = "Selectivity Curve Designer",
+    title = "Selectivity Curve Designer: Explore different forms of fishery selectivity by changing parameter values",
     sidebar = sidebar(
       width = 300,
-      h4("Selectivity Parameters"),
+      h5("Selectivity Parameters"),
       
       # Choose between length or age
       radioButtons(
@@ -379,7 +378,7 @@ nav_panel(
   title = "Sampling abundance",
   value = "abundance",
   page_sidebar(
-    title = "Fishery dependent and independent population sampling",
+    title = "Fishery dependent and independent population sampling: Explore how different sampling designs and approaches measure the true population",
     sidebar = sidebar(
       h4("Setting population size"),
       fluidRow(
@@ -460,10 +459,10 @@ nav_panel(
 # Bio comps tab #
 ########################
 nav_panel(
-  title = "Biological compositions",
+  title = "Biological compositions: ",
   value = "biocomps",
   page_sidebar(
-    title = "Fish Population Structure & Stock Assessment",
+    title = "Fish Population Structure: Change life history parameters and selectivity to see how they influences fished age and length compositions compared to unfished populations",
     
     sidebar = sidebar(
       width = 350,
@@ -639,7 +638,7 @@ nav_panel(
   title = "Reference Points",
   value = "refpts",
   page_sidebar(
-    title = "Fisheries Threshold Harvest Control Rule",
+    title = "Harvest Control Rule: Create control rules by defining reference points and explore their behavior by altering stock status",
     sidebar = sidebar(
       h5(tags$b("Set your harvest control rule"),style="text-align: center;"),
       

@@ -317,7 +317,7 @@ server <- function(input, output, session) {
       #geom_line(size = 1.2) +
       #geom_point(size = 2) +
         #scale_fill_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
-        scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
+        scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = "gray49")) +
         labs(
           x = "Age (years)",
           y = "Frequency",
@@ -349,7 +349,7 @@ server <- function(input, output, session) {
     p <- ggplot(plot_data, aes(x = age, color = population)) +
       geom_density(alpha = 0.5, size = 1,show.legend = FALSE)+
       #scale_fill_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
-      scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
+      scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = "gray49")) +
       labs(
         x = "Age (years)",
         y = "Frequency",
@@ -383,7 +383,7 @@ server <- function(input, output, session) {
       #geom_line(size = 1.2) +
       #geom_point(size = 2) +
       #scale_fill_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
-      scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
+      scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = "gray49")) +
       labs(x = "Length", y = "Frequency", title = "Total Length Distribution: Fished vs Unfished") +
       theme_minimal() +
       theme(legend.position = "bottom")+
@@ -407,11 +407,12 @@ server <- function(input, output, session) {
     plot_data_unfish_df<-data.frame(length=plot_data_unfished,population="Unfished")
     plot_data<-rbind(plot_data_fish_df,plot_data_unfish_df)
     max.d<-max(density(plot_data$length)$y)
-            
+    #col.line<-viridis(1,option="plasma")
+    
     p <- ggplot(plot_data, aes(x = length, color = population)) +
       geom_density(alpha = 0.5, size = 1,show.legend = FALSE)+
       #scale_fill_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
-      scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
+      scale_color_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = "gray49")) +
       labs(x = "Length", y = "Proportion", title = "Selected Length Distribution: Fished vs Unfished") +
       theme_minimal() +
       theme(legend.position = "bottom")+
@@ -493,17 +494,19 @@ server <- function(input, output, session) {
     age_data_fish_df<-data.frame(age=age_data_fished,population="Fished")
     age_data_unfished<-do.call(c,mapply(function(x) rep(pops$unfished$age[x],round(pops$unfished$numbers[x],0)),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
     age_data_unfish_df<-data.frame(age=age_data_unfished,population="Unfished")
-    age_data_df<-rbind(age_data_fish_df,age_data_unfish_df)
+    
     
     #Lengths
     lt_data_fished<-do.call(c,mapply(function(x) rnorm(round(pops$fished$numbers[x]*pops$fished$selectivity[x],0),pops$fished$length[x],pops$fished$length[x]*0.1),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
     lt_data_fish_df<-data.frame(length=lt_data_fished,population="Fished")
     lt_data_unfished<-do.call(c,mapply(function(x) rnorm(round(pops$unfished$numbers[x],0),pops$unfished$length[x],pops$unfished$length[x]*0.1),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
     lt_data_unfish_df<-data.frame(length=lt_data_unfished,population="Unfished")
-    lt_data_df<-rbind(lt_data_fish_df,lt_data_unfish_df)
     
-    age_lt_data_df<-cbind(age_data_df$age,lt_data_df)
-    colnames(age_lt_data_df)[1]<-"age"
+    agelt_fished_df<-cbind(age_data_fish_df$age,lt_data_fish_df)
+    agelt_unfished_df<-cbind(age_data_unfish_df$age,lt_data_unfish_df)
+    
+    #age_lt_data_df<-cbind(age_data_df$age,lt_data_df)
+    colnames(agelt_unfished_df)[1]<-colnames(agelt_fished_df)[1]<-"age"
     
     #Calculate age at maturity lengths
     age.mat<-input$t0 - (log(1 - (c(input$L50,input$L95) / input$Linf)) / input$K)
@@ -525,7 +528,8 @@ server <- function(input, output, session) {
     p<-ggplot(data, aes(x = age)) +
       geom_line(aes(y = pop_scaled, color = "Population"), size = 1.2, linetype = "dashed") +
       geom_point(aes(y = pop_scaled, color = "Population"), size = 2, shape = 17) +
-      geom_point(data=age_lt_data_df,aes(age,length),col="gray")+
+      geom_point(data=agelt_unfished_df,aes(age,length),col="gray49",alpha=0.3)+
+      geom_point(data=agelt_fished_df,aes(age,length),col=viridis(1,option="plasma"),alpha=0.4)+
       geom_line(aes(y = length, color = "Length"), size = 1.2) +
       geom_point(aes(y = length, color = "Length"), size = 2) +
       geom_point(data=age.lt.mat, aes(x = Age,y=Length), size = 5, shape = 21,col="black",fill="lightblue") +

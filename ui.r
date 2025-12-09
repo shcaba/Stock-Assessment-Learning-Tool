@@ -106,6 +106,31 @@ ui <- page_navbar(
         )
       ),
 
+######################
+# Bio compositions #
+######################
+div(
+  class = "col-md-4",
+  actionButton(
+    "goto_biocomps",
+    label = div(
+      card(
+        card_header(
+          div(
+            tags$img(src = "biocomps.png", height = "100px", width = "300px"),
+            h3("Age and length data", class = "card-title")
+          )
+        ),
+        card_body(
+          p("Create life histories and a fishery, then sample age and length data to compare fished and unfished populations.")
+        )
+      )
+    ),
+    class = "btn btn-link p-0 w-100",
+    style = "text-decoration: none; color: inherit;"
+  )
+),
+
 ###############################
 # Scale, Status, Productivity #
 ###############################
@@ -167,7 +192,7 @@ div(
               card(
                 card_header(
                   div(
-                    bs_icon("file-earmark-bar-graph", size = "3em", class = "text-success mb-3"),
+                    tags$img(src = "baseline.png", height = "100px", width = "300px"),
                     h3("Baseline shifter", class = "card-title")
                   )
                 ),
@@ -429,6 +454,115 @@ nav_panel(
       col_widths = c(8,4),
     )
    )
+  ),
+
+########################
+# Bio comps tab #
+########################
+nav_panel(
+  title = "Biological compositions",
+  value = "biocomps",
+  page_sidebar(
+    title = "Fish Population Structure & Stock Assessment",
+    
+    sidebar = sidebar(
+      width = 350,
+      
+      card(
+        card_header("Life History Parameters"),
+        fluidRow(
+          column(width = 6,numericInput("M", "Natural Mortality (M)", value = 0.2, min = 0.05, max = 0.5, step = 0.01)),
+          column(width = 6,numericInput("Linf", "Asymptotic Length (Linf)", value = 60, min = 5, max = 2000, step = 1))),
+        fluidRow(
+          column(width = 6,numericInput("K", "Growth Coefficient (K)", value = 0.13, min = 0.001, max = 2, step = 0.01)),
+          column(width = 6,numericInput("t0", "Age at Size 0 (t0)", value = -1, min = -10, max = 0, step = 0.1))),
+        h6("Length at Maturity"),
+        fluidRow(
+          column(width = 6,numericInput("L50", "L50%", value = 60*0.65, min = 0.1, max = 10000, step = 0.1)),
+          column(width = 6,numericInput("L95", "L95%", value = 60*0.8, min = 0.2, max = 10000, step = 0.1)))
+      ),
+      
+      #    card(
+      #      card_header("Population Parameters"),
+      #      numericInput("M", "Natural Mortality (M)", value = 0.2, min = 0.05, max = 0.5, step = 0.01),
+      #      numericInput("R0", "Recruitment (R0)", value = 1000, min = 100, max = 10000, step = 100),
+      #      numericInput("max_age", "Maximum Age", value = 5.4/0.2, min = 1, max = 500, step = 1)
+      #    ),
+      
+      card(
+        card_header("Fishing Parameters"),
+        numericInput("F_mort", "Fishing Mortality (F)", value = 0.2, min = 0, max = 1, step = 0.01),
+        fluidRow(
+          column(width = 6,numericInput("L50_asc", "L50 (50% selectivity):", value = 30, min = 0, step = 0.1)),
+          column(width = 6,numericInput("L95_asc", "L95 (95% selectivity):", value = 40, min = 0, step = 0.1))),
+        helpText("Selectivity at L95 should be greater than selectivity at L50 for ascending limb"),
+        fluidRow(
+          column(width = 6,numericInput("peak_length", "Peak Length (mode):", value = 60, min = 0, step = 0.1)),
+          column(width = 6,numericInput("desc_sd", "Standard Deviation:", value = 15, min = 0.1, step = 0.1))),
+        helpText("The standard deviation controls the width of the dome."),
+        helpText("To make logistic selectivity, the peak length can be made larger than the largest size in the population.")
+      ),
+      actionButton("save_results", "Save results", class = "btn-outline-secondary",style="color: #fff; background-color: #eb860c; border-color: #eb860c"),
+      
+      card(
+        card_header("Reference Points"),
+        fluidRow(
+          column(width = 6,numericInput("TRP", "Target RP", value = 0.4, min = 0, max=1, step = 0.1)),
+          column(width = 6,numericInput("LRP", "Limit RP", value = 0.25, min = 0, max=1, step = 0.1)))
+      )
+      
+      
+    ),
+    
+    layout_columns(
+      col_widths = c(4,4,4),
+      
+      #    card(
+      #      card_header("Age Structure"),
+      #      plotlyOutput("age_plot")
+      #    ),
+      
+      #    card(
+      #      card_header("Length Structure"),
+      #      plotlyOutput("length_plot")
+      #    ),
+      
+      card(
+        card_header("Selectivity Curve"),
+        plotOutput("selectivity_plot")
+      ),
+      
+      card(
+        card_header("Growth and Mortality"),
+        plotOutput("growth_M_plot", height = "500px")
+      ),
+      card(
+        card_header("Stock Status"),
+        tableOutput("stock_status"),
+        textOutput("stock_interpretation")
+      )
+      
+    ),
+    
+    layout_columns(
+      col_widths = c(4,4,4),
+      card(
+        card_header("Sampled age compositions"),
+        plotlyOutput("age_sel_plot")
+      ),
+      
+      card(
+        card_header("Sampled length compositions"),
+        plotlyOutput("length_sel_plot")
+      ),
+      
+      card(
+        card_header("Sensitivity results"),
+        tableOutput("results_out"),
+      )
+      
+     )
+    )
   ),
 
 ###########

@@ -81,6 +81,33 @@ ui <- page_navbar(
           )
         ),
 
+
+################
+# Productivity #
+################
+div(
+  class = "col-md-4",
+  actionButton(
+    "goto_prod_eqyield",
+    label = div(
+      card(
+        card_header(
+          div(
+            tags$img(src = "Eq_curveII.png", height = "100px", width = "200px"),
+            h3("Stock Productivity and Fishery Yield", class = "card-title")
+          )
+        ),
+        card_body(
+          p("Find out what steepness means and understand the influence of stock productivty on fishery yield by changing steepness, life history, and selectivity parameters.")
+        )
+      )
+    ),
+    class = "btn btn-link p-0 w-100",
+    style = "text-decoration: none; color: inherit;"
+  )
+),
+
+
 ######################
 # Abundance sampling #
 ######################
@@ -353,7 +380,7 @@ nav_panel(
       # Plot panel
       card(
         card_header("Selectivity Curve"),
-        plotOutput("selectivity_plot", 
+        plotOutput("selectivity_plot_out", 
                    height = "500px",
                    click = "plot_click",
                    hover = "plot_hover")
@@ -370,6 +397,108 @@ nav_panel(
     )
   )
   ),
+
+################
+# Productivity #
+################
+nav_panel(
+  title = "Productivity",
+  value = "productivity",
+  
+  page_sidebar(
+    title = "Productivity and Fishery Yield Analysis: How fishery yield changes with stock productivity",
+    
+    sidebar = sidebar(
+      width = 300,
+      
+      p("Explore stock productivity (steepness) and the relationship between relative spawning stock biomass and yield per recruit, 
+       incorporating selectivity and natural mortality."),
+      
+      p("Steepness (h) is the fraction of R₀ expected when spawning biomass is 20% of unfished spawning biomass (SB₀)."),
+      #p("• h = 0.2: Very low productivity"),
+      #p("• h = 0.7: Moderate productivity"), 
+      #p("• h = 1.0: Maximum productivity"),
+      
+      
+      
+      # Steepness parameter
+      sliderInput("steepness", 
+                  "Steepness (h):", 
+                  min = 0.2, 
+                  max = 1.0, 
+                  value = 0.7, 
+                  step = 0.01,
+                  width = "100%"),
+      
+      # Natural mortality
+      sliderInput("natural_mortality", 
+                  "Natural Mortality (M):", 
+                  min = 0.01, 
+                  max = 1, 
+                  value = 0.2, 
+                  step = 0.01,
+                  width = "100%"),
+      
+      h5("Age at Maturity & Selectivity"),
+      uiOutput("maturity.in"),
+      
+      
+      # Selectivity parameters
+      #    h5("Selectivity at Age"),
+      uiOutput("selectivity.in"),
+      
+      # Pretty Good Yield
+      #h5("Pretty Good Yield: What % of MSY is good enough?"),
+      numericInput("PGY", 
+                   "Pretty Good Yield: What % of MSY is good enough?", 
+                   value = 0.8, 
+                   min = 0, 
+                   max = 1, 
+                   step = 0.01),
+    hr(),
+  ),
+
+  # Main panel with yield curve plot
+  layout_columns(
+    card(
+      card_header("Stock Recruitment Curve"),
+      plotOutput("sr_plot", height = "400px")
+    ),
+    
+    card(
+      card_header("Beverton-Holt Stock-Recruitment Equation"),
+      withMathJax(),
+      div(
+        style = "text-align: center; font-size: 16px; margin: 20px 0;",
+        "$$\\frac{R}{R_0} = \\frac{4h \\cdot \\frac{S}{S_0}}{(1-h) + \\frac{S}{S_0}(5h-1)}$$"
+      ),
+      p("Where:"),
+      tags$ul(
+        tags$li("R/R₀ = Relative recruitment"),
+        tags$li("S/S₀ = Relative spawning stock biomass"),
+        tags$li("h = Steepness parameter")
+      )
+    ),
+    col_widths = c(6,6),
+    row_heights = c(2,2)
+  ),
+  
+  layout_columns(
+    card(
+      card_header("Yield Per Recruit Curve"),
+      plotOutput("yield_curve", height = "500px")
+    ),
+    
+    # Additional information card
+    card(
+      card_header("Model Parameters"),
+      tableOutput("parameters_table")
+    ),
+    col_widths = c(6,6),
+    row_heights = c(2,2)
+  )
+  )  
+),
 
 ######################
 # Abundance sampling #
@@ -528,7 +657,7 @@ nav_panel(
       
       card(
         card_header("Selectivity Curve"),
-        plotOutput("selectivity_plot")
+        plotOutput("selectivity_plot_lt")
       ),
       
       card(

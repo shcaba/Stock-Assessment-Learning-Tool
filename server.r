@@ -679,8 +679,11 @@ server <- function(input, output, session) {
       data <- yield_data()
 
       # Find MSY point
-      msy_point <- data[which.max(data$adjusted_yield), ]
-      pgy_points<- data[round(data$adjusted_yield,4)==round(input$PGY*msy_point$adjusted_yield,4),]
+      #if(any(is.na(data$adjusted_yield)))
+      #{
+        msy_point <- data[which.max(data$adjusted_yield), ]
+        pgy_points<- data[round(data$adjusted_yield,4)==round(input$PGY*msy_point$adjusted_yield,4),]        
+      #}
 
       ggplot(data, aes(x = rel_spawning_biomass, y = adjusted_yield)) +
         geom_line(color = "steelblue", size = 1.2) +
@@ -720,9 +723,10 @@ server <- function(input, output, session) {
 
     # Parameters table
     output$parameters_table <- renderTable({
-      data <- yield_data()
-      msy_point <- data[which.max(data$adjusted_yield), ]
-      pgy_points<- data[round(data$adjusted_yield,4)==round(input$PGY*msy_point$adjusted_yield,4),]
+      req(input$A50,input$A50,input$sel_50,input$sel_95)
+      #data <- yield_data()
+      #msy_point <- data[which.max(data$adjusted_yield), ]
+      #pgy_points<- data[round(data$adjusted_yield,4)==round(input$PGY*msy_point$adjusted_yield,4),]
 
       params <- data.frame(
         Parameter = c("Steepness (h)",
@@ -731,30 +735,44 @@ server <- function(input, output, session) {
                       "Age at 50% Maturity",
                       "Age at  95% Maturity",
                       "Age at 50% Selectivity",
-                      "Age at  95% Selectivity",
-                      "MSY SSB/SSB₀",
-                      "F at MSY",
-                      "Pretty Good Yield %",
-                      "High relative SB at Pretty Good Yield",
-                      "Low relative SB at Pretty Good Yield"),
+                      "Age at  95% Selectivity"),
         Value = c(input$steepness,
                   input$natural_mortality,
                   5.4/input$natural_mortality,
                   input$A50,
                   input$A95,
                   input$sel_50,
-                  input$sel_95,
-                  round(msy_point$rel_spawning_biomass, 3),
-                  round(msy_point$F_rate, 3),
-                  input$PGY,
-                  max(pgy_points$rel_spawning_biomass),
-                  min(pgy_points$rel_spawning_biomass))
+                  input$sel_95)
       )
 
       return(params)
     }, striped = TRUE, hover = TRUE)
 
-
+    # Outputs table
+    output$outputs_table <- renderTable({
+      req(input$A50,input$A50,input$sel_50,input$sel_95)
+      
+      data <- yield_data()
+      msy_point <- data[which.max(data$adjusted_yield), ]
+      pgy_points<- data[round(data$adjusted_yield,4)==round(input$PGY*msy_point$adjusted_yield,4),]
+      
+      outputs <- data.frame(
+        Output = c("MSY SSB/SSB₀",
+                      "F at MSY",
+                      "Pretty Good Yield %",
+                      "High relative SB at Pretty Good Yield",
+                      "Low relative SB at Pretty Good Yield"),
+        Value = c(round(msy_point$rel_spawning_biomass, 3),
+                  round(msy_point$F_rate, 3),
+                  input$PGY,
+                  max(pgy_points$rel_spawning_biomass),
+                  min(pgy_points$rel_spawning_biomass))
+      )
+      
+      return(outputs)
+    }, striped = TRUE, hover = TRUE)
+    
+    
   })
   
 ######################

@@ -476,7 +476,7 @@ nav_panel(
       tags$ul(
         tags$li("R/R₀ = Relative recruitment"),
         tags$li("S/S₀ = Relative spawning stock biomass"),
-        tags$li("h = Steepness parameter")
+        tags$li("h = Steepness")
       )
     ),
     col_widths = c(6,6),
@@ -492,10 +492,14 @@ nav_panel(
     # Additional information card
     card(
       card_header("Model Parameters"),
-      tableOutput("parameters_table")
+      tableOutput("parameters_table"),
     ),
-    col_widths = c(6,6),
-    row_heights = c(2,2)
+    card(
+      card_header("Model Outputs"),
+      tableOutput("outputs_table")
+    ),
+    col_widths = c(6,3,3),
+    row_heights = c(2,2,2)
   )
   )  
 ),

@@ -623,7 +623,7 @@ server <- function(input, output, session) {
       ages <- 1:(5.4/input$natural_mortality)
 
       # Selectivity-at-age (logistic)
-      selectivity <- calculate_selectivity(ages, input$sel_50, input$sel_95)
+      selectivity.yld <- calculate_selectivity(ages, input$sel_50, input$sel_95)
 
       # Maturity-at-age (assume knife-edge at age 2 for simplicity)
       #maturity <- ifelse(ages >= 2, 1, 0)
@@ -647,13 +647,13 @@ server <- function(input, output, session) {
 
       # Virgin spawning biomass (F = 0)
       virgin_sb <- calculate_spawning_biomass(0, input$natural_mortality, ages,
-                                              selectivity, maturity, weight_at_age)
+                                              selectivity.yld, maturity, weight_at_age)
 
       for(i in seq_along(F_rates)) {
         sb <- calculate_spawning_biomass(F_rates[i], input$natural_mortality, ages,
-                                         selectivity, maturity, weight_at_age)
+                                         selectivity.yld, maturity, weight_at_age)
         yld <- calculate_yield(F_rates[i], input$natural_mortality, ages,
-                               selectivity, weight_at_age)
+                               selectivity.yld, weight_at_age)
 
         results$spawning_biomass[i] <- sb
         results$yield[i] <- yld

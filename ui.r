@@ -108,6 +108,32 @@ div(
 ),
 
 
+################
+# Uncertainty #
+################
+div(
+  class = "col-md-4",
+  actionButton(
+    "goto_uncertainty",
+    label = div(
+      card(
+        card_header(
+          div(
+            tags$img(src = "bullseye.png", height = "100px", width = "200px"),
+            h3("Understanding and Quantifying Uncertainty", class = "card-title")
+          )
+        ),
+        card_body(
+          p("Understand how to describe uncertainty in data and model output using the concepts of bias and imprecision. Learn about the difference sources and ways to estimate uncertainty in stock assessments.")
+        )
+      )
+    ),
+    class = "btn btn-link p-0 w-100",
+    style = "text-decoration: none; color: inherit;"
+  )
+),
+
+
 ######################
 # Abundance sampling #
 ######################
@@ -220,7 +246,7 @@ div(
                 card_header(
                   div(
                     tags$img(src = "baseline.png", height = "100px", width = "300px"),
-                    h3("Baseline shifter", class = "card-title")
+                    h3("Stock Assessment Baseline shifter", class = "card-title")
                   )
                 ),
                 card_body(

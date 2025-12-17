@@ -7,6 +7,7 @@ library(dplyr)
 library(ggplot2)
 library(r4ss)
 library(shinyFiles)
+library(shinyWidgets)
 
 ui <- page_navbar(
   title = "Stock Assessment Learning Tool",
@@ -184,31 +185,6 @@ div(
   )
 ),
 
-###############################
-# Scale, Status, Productivity #
-###############################
-      div(
-        class = "col-md-4",
-        actionButton(
-          "goto_ssp",
-          label = div(
-            card(
-              card_header(
-                div(
-                  tags$img(src = "SSP.png", height = "100px", width = "300px"),
-                  h3("Scale, Status, Productivity", class = "card-title")
-                )
-              ),
-              card_body(
-                p("Understand stock assessment output and sensitivity and learn how to communicate stock assessments change by understanding the three main dimensions of stock assessment output.")
-              )
-            )
-          ),
-          class = "btn btn-link p-0 w-100",
-          style = "text-decoration: none; color: inherit;"
-        )
-      ),
-
 ####################
 # Reference Points #
 ####################
@@ -233,6 +209,31 @@ div(
     style = "text-decoration: none; color: inherit;"
   )
 ),
+
+###############################
+# Scale, Status, Productivity #
+###############################
+      div(
+        class = "col-md-4",
+        actionButton(
+          "goto_ssp",
+          label = div(
+            card(
+              card_header(
+                div(
+                  tags$img(src = "SSP.png", height = "100px", width = "300px"),
+                  h3("Scale, Status, Productivity", class = "card-title")
+                )
+              ),
+              card_body(
+                p("Understand stock assessment output and sensitivity and learn how to communicate stock assessments change by understanding the three main dimensions of stock assessment output.")
+              )
+            )
+          ),
+          class = "btn btn-link p-0 w-100",
+          style = "text-decoration: none; color: inherit;"
+        )
+      ),
 
 ####################
 # Baseline shifter #
@@ -530,6 +531,97 @@ nav_panel(
   )  
 ),
 
+###############
+# Uncertainty #
+###############
+nav_panel(
+  title = "Uncertainty",
+  value = "uncertainty",
+
+  page_sidebar(
+    title = "Understanding Uncertainty: Bias and Precision",
+    
+    sidebar = sidebar(
+      h4("Uncertainty is "),
+      tags$ul(
+        tags$li(strong("Unknown:"), "What we do not know or have trouble measuring."),
+        tags$li(strong("Unpredictable:"), "We know it, but it is hard to predict."),
+        tags$li(strong("Risky:"), "If it is hard to measure or predict, it increases decision-making risk.")
+      ),
+      
+      # sliderInput("true_value", 
+      #             "True Value:", 
+      #             min = 25, max = 175, value = 100, step = 1),
+      
+      numericInput("n_samples", 
+                   "Number of Samples:", 
+                   min = 1, max = 1000000, value = 200, step = 1),
+      
+      numericInput("bias", 
+                   "Bias (% error of true value):", 
+                   min = -100, max = 100, value = 0, step = 1),
+      
+      numericInput("CV", 
+                   "Precision (coeff. of variation):", 
+                   min = 0, max = 1, value = 0.1, step = 0.01),
+      
+      
+      actionButton("resample", "Generate New Sample", 
+                   class = "btn-primary"),
+      
+      hr(),
+      
+      # h5("Predefined Scenarios:"),
+      # actionButton("scenario1", "High Precision, No Bias", 
+      #              class = "btn-outline-success btn-sm"),
+      # actionButton("scenario2", "Low Precision, No Bias", 
+      #              class = "btn-outline-warning btn-sm"),
+      # actionButton("scenario3", "High Precision, High Bias", 
+      #              class = "btn-outline-danger btn-sm"),
+      # actionButton("scenario4", "Low Precision, High Bias", 
+      #              class = "btn-outline-dark btn-sm")
+    ),
+    
+    # Main content
+    layout_columns(
+      col_widths = c(8, 4, 12),
+      
+      # Top row - main visualization
+      card(
+        card_header("Distribution of Measurements"),
+        plotOutput("main_plot", height = "400px")
+      ),
+      
+      # Bottom left - statistics
+      card(
+        layout_columns(
+          col_widths = c(12,12),
+          card_header("Statistical Summary"),
+          tableOutput("statistics_table"),
+          #card_header("Interpretation"),
+          uiOutput("interp")
+        )
+      ),
+      
+      # Bottom right - explanation
+      layout_columns(
+        col_widths = c(4,4,4),
+        card(
+          card_header("Key concepts"),
+          uiOutput("uncertainty")),
+        card(
+          card_header("Sources of Uncertainty"),
+          uiOutput("sources")),
+        card(
+          card_header("Estimating Uncertainty"),
+          uiOutput("estimation"))
+      )
+    )
+  )
+  
+),
+
+  
 ######################
 # Abundance sampling #
 ######################
@@ -598,13 +690,13 @@ nav_panel(
     ),
     layout_columns(
       card(
-        card_header("Sample vs Population"),
+        card_header("Index: Sample vs Population"),
         card_body(
           plotlyOutput("index_plot")
         ),
       ),
       card(
-        card_header("Sample vs Population"),
+        card_header("Sample vs Population Statistics"),
         card_body(
           verbatimTextOutput("comparison_stats")
         )
@@ -614,9 +706,9 @@ nav_panel(
    )
   ),
 
-########################
+#################
 # Bio comps tab #
-########################
+#################
 nav_panel(
   title = "Biological compositions: ",
   value = "biocomps",
@@ -723,72 +815,6 @@ nav_panel(
     )
   ),
 
-###########
-# SSP tab #
-###########
-nav_panel(
-  title = "SSP",
-  value = "SSP",
-  sidebarLayout(
-    sidebarPanel(
-      
-      tags$head(
-        tags$style(HTML("
-                    li {
-                    font-size: 20px;
-
-                    }
-                    li span {
-                    font-size: 18px;
-                    }
-                    ul {
-                    list-style-type: square;
-                    }
-
-                    "))
-      ),
-      
-      tags$h3("There are three main concepts that help us interpret stock assessments:"),
-      tags$ul(
-        tags$li(tags$b("Stock scale or size"),"-- the absolute amount of the stock in either biomass or numbers-- allows for the understanding of fishing rates."),
-        tags$li(tags$b("Stock status"),"-- typically a relative size/percentage of the population to an unfished or size at maximum sustainable yield-- is a basic output of stock assessment. It provides the indicator of stock health."),
-        tags$li(tags$b("Productivity"),"-- how fast a population can ultimately growth in status and scale. This include mortality, growth, maturity, and recruitment capacity.")
-      ),
-      
-      h4("The combination of stock status (i.e., how much the population has declined) and size (i.e., how many are there) along with the productivity of the stock determines how much can be caught, and are used in the harvest control rules for setting catch limits."),
-      h4("Understanding why stock status and scale may change across assessments, and what causes there change (e.g., stock productivity), is critical for developing fisheries management"),
-      br(),
-      h4("This tool allows you to explore these concepts by picking different model configurations."),
-      h4("All models are compared to a stock that is at 40% of unfished in the final year and has a certain catch time series and life history."),
-      h4("You can choose to change from the following options"),
-      tags$ul(
-        tags$li("Change the ending", tags$b("stock status") ,"value."),
-        tags$li("Change the", tags$b("stock scale") ,"by estimate the intial stock size or changing the catch history."),
-        tags$li("Change the", tags$b("stock productivity") ,"via natural mortality or recruitment steepness.")
-      ),
-      
-      br(),
-      h4("Choose changes to the reference model to explore"),
-      uiOutput("SSP_model_picks_groupedII"),
-      br(),
-      actionButton("run_SSP_comps", strong("Run Comparisons"),
-                   width = "100%",
-                   icon("circle-play"),
-                   style = "font-size:120%;border:2px solid;color:#FFFFFF; background:#236192"
-      ),
-    ),
-    
-    # Show a plot of the generated distribution
-    mainPanel(
-      #          fluidRow(column(width=6,plotlyOutput("Scale"),
-      #                          column(width = 6,plotlyOutput("Status"))))
-      plotlyOutput("Catches"),
-      plotlyOutput("Scale"),
-      plotlyOutput("Status"),
-      plotlyOutput("Proj")
-    )
-  )
-),
 
 ########################
 # Reference points tab #
@@ -898,7 +924,76 @@ nav_panel(
       col_widths = c(12,6,6),
       row_heights = c(2,1)
     ))
-  ),
+),
+
+
+###########
+# SSP tab #
+###########
+nav_panel(
+  title = "SSP",
+  value = "SSP",
+  sidebarLayout(
+    sidebarPanel(
+      
+      tags$head(
+        tags$style(HTML("
+                    li {
+                    font-size: 20px;
+
+                    }
+                    li span {
+                    font-size: 18px;
+                    }
+                    ul {
+                    list-style-type: square;
+                    }
+
+                    "))
+      ),
+      
+      tags$h3("There are three main concepts that help us interpret stock assessments:"),
+      tags$ul(
+        tags$li(tags$b("Stock scale or size"),"-- the absolute amount of the stock in either biomass or numbers-- allows for the understanding of fishing rates."),
+        tags$li(tags$b("Stock status"),"-- typically a relative size/percentage of the population to an unfished or size at maximum sustainable yield-- is a basic output of stock assessment. It provides the indicator of stock health."),
+        tags$li(tags$b("Productivity"),"-- how fast a population can ultimately growth in status and scale. This include mortality, growth, maturity, and recruitment capacity.")
+      ),
+      
+      h4("The combination of stock status (i.e., how much the population has declined) and size (i.e., how many are there) along with the productivity of the stock determines how much can be caught, and are used in the harvest control rules for setting catch limits."),
+      h4("Understanding why stock status and scale may change across assessments, and what causes there change (e.g., stock productivity), is critical for developing fisheries management"),
+      br(),
+      h4("This tool allows you to explore these concepts by picking different model configurations."),
+      h4("All models are compared to a stock that is at 40% of unfished in the final year and has a certain catch time series and life history."),
+      h4("You can choose to change from the following options"),
+      tags$ul(
+        tags$li("Change the ending", tags$b("stock status") ,"value."),
+        tags$li("Change the", tags$b("stock scale") ,"by estimate the intial stock size or changing the catch history."),
+        tags$li("Change the", tags$b("stock productivity") ,"via natural mortality or recruitment steepness.")
+      ),
+      
+      br(),
+      h4("Choose changes to the reference model to explore"),
+      uiOutput("SSP_model_picks_groupedII"),
+      br(),
+      actionButton("run_SSP_comps", strong("Run Comparisons"),
+                   width = "100%",
+                   icon("circle-play"),
+                   style = "font-size:120%;border:2px solid;color:#FFFFFF; background:#236192"
+      ),
+    ),
+    
+    # Show a plot of the generated distribution
+    mainPanel(
+      #          fluidRow(column(width=6,plotlyOutput("Scale"),
+      #                          column(width = 6,plotlyOutput("Status"))))
+      plotlyOutput("Catches"),
+      plotlyOutput("Scale"),
+      plotlyOutput("Status"),
+      plotlyOutput("Proj")
+    )
+  )
+),
+
   
 ########################
 # Baseline Shifter tab #

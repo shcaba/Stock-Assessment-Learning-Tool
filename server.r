@@ -774,7 +774,275 @@ server <- function(input, output, session) {
     
     
   })
+
+
+###############
+# Uncertainty #
+###############
   
+observeEvent(input$goto_uncertainty, {
+  nav_select("navbar", "uncertainty")
+    
+  true_value<-100
+  
+  # Reactive values to store data
+  values <- reactiveValues(
+    data = NULL,
+    seed = 123
+  )
+  
+  # Generate data based on current parameters
+  generate_data <- reactive({
+    # Use seed for reproducibility until user clicks resample
+    set.seed(values$seed)
+    
+    # Calculate standard deviation from precision
+    sd_value <- input$CV*true_value
+    
+    # Generate measurements with bias and precision
+    measurements <- rnorm(input$n_samples, 
+                          mean = true_value + (true_value*(input$bias/100)), 
+                          sd = sd_value)
+    
+    data.frame(
+      measurement = measurements,
+      true_value = true_value,
+      bias = input$bias,
+      precision = input$CV
+    )
+  })
+  
+  # Update data when parameters change or resample is clicked
+  observe({
+    values$data <- generate_data()
+  })
+  
+  # Resample button
+  observeEvent(input$resample, {
+    values$seed <- sample(1:10000, 1)
+    values$data <- generate_data()
+  })
+  
+  # # Predefined scenarios
+  # observeEvent(input$scenario1, {
+  #   updateSliderInput(session, "bias", value = 0)
+  #   updateSliderInput(session, "precision", value = 3)
+  #   values$seed <- sample(1:10000, 1)
+  # })
+  # 
+  # observeEvent(input$scenario2, {
+  #   updateSliderInput(session, "bias", value = 0)
+  #   updateSliderInput(session, "precision", value = 0.3)
+  #   values$seed <- sample(1:10000, 1)
+  # })
+  # 
+  # observeEvent(input$scenario3, {
+  #   updateSliderInput(session, "bias", value = 15)
+  #   updateSliderInput(session, "precision", value = 3)
+  #   values$seed <- sample(1:10000, 1)
+  # })
+  # 
+  # observeEvent(input$scenario4, {
+  #   updateSliderInput(session, "bias", value = 15)
+  #   updateSliderInput(session, "precision", value = 0.3)
+  #   values$seed <- sample(1:10000, 1)
+  # })
+  
+  # Main plot
+  output$main_plot <- renderPlot({
+    req(values$data)
+    
+    data <- values$data
+    
+    # Calculate mean and confidence interval
+    mean_measurement <- mean(data$measurement)
+    #se_measurement <- sd(data$measurement) / sqrt(nrow(data))
+    ci_lower <- mean_measurement - 1.96 * sd(data$measurement)
+    ci_upper <- mean_measurement + 1.96 * sd(data$measurement)
+    
+    # Create the plot
+    p <- ggplot(data, aes(x = measurement)) +
+      geom_histogram(aes(y = after_stat(density)), 
+                     bins = 100, alpha = 0.7, fill = "steelblue", 
+                     color = "white") +
+      #      geom_density(alpha = 0.3, fill = "steelblue") +
+      xlim(0,200)+
+      # Add vertical lines for true value, sample mean, and CI
+      geom_vline(aes(xintercept = true_value), 
+                 color = "black", size = 2, linetype = "solid",
+                 alpha = 0.8) +
+      geom_vline(aes(xintercept = mean_measurement), 
+                 color = "orange", size = 2, linetype = "dashed",
+                 alpha = 0.8) +
+      geom_vline(aes(xintercept = ci_lower), 
+                 color = "orange", size = 1, linetype = "dotted",
+                 alpha = 0.6) +
+      geom_vline(aes(xintercept = ci_upper), 
+                 color = "orange", size = 1, linetype = "dotted",
+                 alpha = 0.6) +
+      
+      # Add labels and annotations
+      annotate("text", x = true_value, y = Inf, 
+               label = "True Value", vjust = 2, hjust = -0.1,
+               color = "black", fontface = "bold") +
+      annotate("text", x = mean_measurement, y = Inf, 
+               label = "Sample Mean", vjust = 2, hjust = 1.1,
+               color = "orange", fontface = "bold") +
+      
+      labs(
+        title = paste("Distribution of", input$n_samples, "measurements"),
+        subtitle = paste("Bias =", input$bias, "%| Precision =", round(input$CV, 2)),
+        x = "Sampled Metric (e.g., lengths, abundance, etc.)",
+        y = "Density"
+      ) +
+      #theme_minimal() +
+      theme(
+        plot.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        legend.position = "bottom"
+      )
+    
+    print(p)
+  })
+  
+  # Statistics table
+  output$statistics_table <- renderTable({
+    req(values$data)
+    
+    data <- values$data
+    
+    # Calculate statistics
+    sample_mean <- mean(data$measurement)
+    sample_sd <- sd(data$measurement)
+    bias_estimate <- sample_mean - true_value
+    #    rmse <- sqrt(mean((data$measurement - true_value)^2))
+    sd_value <- input$CV*true_value
+    # Create summary table
+    stats <- data.frame(
+      Metric = c("True Value", "Sample Mean", "% Estimated Bias", 
+                 "Sample SD", "Theoretical SD"),
+      Value = c(
+        round(true_value, 2),
+        round(sample_mean, 2),
+        round(bias_estimate, 2),
+        round(sd_value, 2),
+        round(sample_sd, 2)
+        #round(rmse, 2),
+      ),
+      stringsAsFactors = FALSE
+    )
+    
+    
+    # if(abs(input$bias) >= 20 & input$CV < 0.2) {
+    #   div(class = "alert alert-warning", 
+    #       "High precision but high bias: Measurements are consistent but systematically wrong!")
+    # } else if(abs(input$bias) < 20 & input$CV >= 0.2) {
+    #   div(class = "alert alert-info", 
+    #       "Low bias but low precision: Measurements are unbiased but highly variable.")
+    # } else if(abs(input$bias) < 20 & input$CV < 0.2) {
+    #   div(class = "alert alert-success", 
+    #       "Low bias and high precision: Ideal scenario with accurate and precise measurements!")
+    # } else if(abs(input$bias) >= 20 & input$CV >= 0.2){
+    #   div(class = "alert alert-danger", 
+    #       "High bias and low precision: Worst case with both systematic error and high variability.")
+    # }
+    
+    stats
+  }, striped = TRUE, hover = TRUE, bordered = TRUE)
+  
+  
+  
+  output$interp <- renderUI({
+    
+    if(abs(input$bias) >= 20 & input$CV < 0.2) {
+      div(class = "alert alert-warning", 
+          "High precision but high bias: Measurements are consistent but systematically wrong!")
+    } else if(abs(input$bias) < 20 & input$CV >= 0.2) {
+      div(class = "alert alert-info", 
+          "Low bias but low precision: Measurements are unbiased but highly variable.")
+    } else if(abs(input$bias) < 20 & input$CV < 0.2) {
+      div(class = "alert alert-success", 
+          "Low bias and high precision: Ideal scenario with accurate and precise measurements!")
+    } else if(abs(input$bias) >= 20 & input$CV >= 0.2){
+      div(class = "alert alert-danger", 
+          "High bias and low precision: Worst case with both systematic error and high variability.")
+    }
+    
+  })
+  
+  
+  # Uncertainty text
+  output$uncertainty <- renderUI({
+    
+    # Generate interpretation
+    uncertainty_text <- tagList(
+      
+      h5("Describing Uncertainty:", class = "text-primary"),
+      tags$ul(
+        tags$li(strong("Bias:"), "Systematic error that shifts all measurements away from the true value"),
+        tags$li(strong("Precision:"), "How tightly clustered measurements are (opposite of variance)"),
+      ),
+      
+      h5("Types of uncertainy:", class = "text-primary"),
+      tags$ul(
+        tags$li(strong("Measurement error:"), "Imperfect measures that lead to bias. This is possibly controllable or reducible with better measuring approaches."),
+        tags$li(strong("Process uncertainty:"), "Naturally occuring variability (e.g., length at age, recruitment). This is hard to control and a source of both imprecision. May also induce bias if ignored or mis-modelled."),
+      ),
+      
+    )
+    uncertainty_text
+  })
+  
+  # Sources text
+  output$sources <- renderUI({
+    
+    # Sources of uncertainty
+    sources_text <- tagList(
+      
+      h5("Where Does Model Uncertainty Come From?", class = "text-primary"),
+      tags$ul(
+        tags$li(strong("Data Representativeness:"), "When the data do not measure or represent what is intended. Major source of bias."),
+        tags$li(strong("Parameter estimation:"), "Unknown parameter values and estimating them via data and/or priors.  May produces both bias and imprecision"),
+        tags$li(strong("Model assumptions:"), "Models are approximations of reality and have assumptions based on how they are specified (i.e., which parameters are used and estimated or not). Those assumptions may cause bias if they are poor or poorly explored."),
+        tags$li(strong("Model type:"), "Different models will have different assumptions. Knowing these assumptions for each model type will identify areas of uncertainty (or overcertainty when pre-specifying parameters)."),
+        tags$li(strong("Natural Variability:"), "No matter how well the system is measured, it may not be stationary or static. Natural variability, even measured perfectly, causes uncertainty."),
+      ),
+      
+    )
+    
+    sources_text
+    
+  })
+  
+  # Sources of uncertainty
+  output$estimation <- renderUI({
+    
+    estimation_text <- tagList(
+      
+      h5("How Is Stock Assessment Uncertainty Estimated?", class = "text-primary"),
+      tags$ul(
+        tags$li(strong("Within Model"), "When the data do not measure or represent what is intended. Major source of bias."),
+        tags$ol(
+          tags$li(strong("Maximum Likelihood Estimation (MLE):"), "Produces asymptotic variances which are normally distributed. Much faster than Bayesian analyses, but may underestimate within model uncertainty compared to Bayesian analyses."),
+          tags$li(strong("Bayesian Estimation:"), "Uses the data, priors and MLE to explore and estimate uncertainty. Long estimation run times."),
+        ),
+        tags$li(strong("Among Model Uncertainty:"), "Different models will have different assumptions. Knowing these assumptions is key.  "),
+        tags$ol(
+          tags$li(strong("Sensitivity Analysis:"), "Changing model inputs or assumptions to explore how it changes model outputs. One of the most common and powerful ways to explore model uncertainty."),
+          tags$li(strong("Likelihood Profiles:"), "Changing one parameter or model specification across a series of values to see how the model fit and outputs change. A way to demonstrate both within model and among model uncertainty."),
+        ),
+      ),
+      
+    )
+    
+    estimation_text
+    
+  })
+  
+ })  
+  
+    
 ######################
 # Sampling abundance #
 ######################
@@ -1545,6 +1813,206 @@ server <- function(input, output, session) {
   
 }) 
 
+  ######################################  
+  # Reference Points and Control Rules #
+  ######################################
+  observeEvent(input$goto_refpts, {
+    nav_select("navbar", "refpts")
+    # Reactive function to calculate control rule
+    control_rule_data <- reactive({
+      # Validate inputs
+      req(input$b_nocatch, input$b_target, input$E_msy, 1)
+      
+      # Ensure b_target > b_nocatch
+      #    if (input$b_target <= input$b_nocatch) {
+      #      updateNumericInput(session, "b_target", value = input$b_nocatch + 0.1)
+      #    }
+      
+      # Create sequence of stock sizes
+      stock_ratio <- round(seq(0, 1, by = 0.01),2)
+      data.frame(
+        stock_ratio = stock_ratio,
+        catch = stock_ratio*input$E_msy
+      )
+      
+      
+      # Create linear models
+      
+      # Calculate catch based on control rule type
+      #   catch_values <- sapply(stock_ratio, function(b) {
+      #     browser()
+      #     if (b <= input$b_target) {
+      #       # Below limit: no fishing
+      #       return(stock_ratio*input$E_msy)
+      #       } 
+      #     else if (b >= input$b_target) {
+      #       # Above target: maximum sustainable catch
+      #       #return(input$max_catch)
+      #       #return(1)
+      #     #} else {
+      #       # Between limit and target: depends on rule type
+      #       #ratio <- (b - input$b_nocatch) / (input$b_target - input$b_nocatch)
+      #       
+      #       if(input$rule_type == "linear"){
+      #         #return(input$max_catch * ratio)
+      #         #return(lm(c(0,input$E_msy)~c(0,input$b_target))$coeff[2]*ratio)
+      #         return(stock_ratio*input$E_msy)
+      #       } 
+      #       
+      #       if(input$rule_type == "hockey"){
+      #         #return(ifelse(ratio > 0.5, input$max_catch, input$max_catch * ratio * 2))
+      #         return(ifelse(stock_ratio>=input$b_target,input$b_target*input$E_msy))
+      #       } 
+      #       
+      #       #else if (input$rule_type == "smooth") {
+      #         # Smooth S-curve transition
+      #       #  smooth_ratio <- 1 / (1 + exp(-10 * (ratio - 0.5)))
+      #       #  return(input$max_catch * smooth_ratio)
+      #       #}
+      #     }
+      #   })
+      # 
+      #       data.frame(
+      #     stock_ratio = stock_ratio,
+      #     catch = catch_values
+      #   )
+    })
+    
+    # Generate the control rule plot
+    output$control_rule_plot <- renderPlot({
+      data <- control_rule_data()
+      #Add threshhold option  
+      data$thresh<-data$constant<-NA
+      thresh.coefs<-coef(lm(c(0,data[data$stock_ratio==input$b_target,]$catch)~c(input$b_nocatch,input$b_target)))
+      data$thresh[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]+thresh.coefs[1]
+      data$constant[data$stock_ratio>=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio==input$b_target]+thresh.coefs[1]
+      
+      p <- ggplot(data, aes(x = stock_ratio, y = catch)) +
+        geom_line(color = "blue", size = 2) +
+        geom_line(aes(x = stock_ratio, y = catch*input$buffer),color = "#390878", size = 2,linetype="dotted") +
+        geom_line(aes(x = stock_ratio, y = thresh),color = "orange", size = 2) +
+        geom_line(aes(x = stock_ratio, y = thresh*input$buffer),color = "#390878", size = 2,linetype="dotted") +
+        geom_line(aes(x = stock_ratio, y = constant),color = "#005595", size = 2) +
+        geom_line(aes(x = stock_ratio, y = constant*input$buffer),color = "#390878", size = 2,linetype="dotted") +
+        geom_point(aes(data[data$stock_ratio==input$current_stock,1],data[data$stock_ratio==input$current_stock,2]),size=5, color="black",fill="white")+
+        #geom_abline(intercept = thresh.coefs[1],slope = thresh.coefs[2], 
+        #           color = "orange", linetype = "dashed", size = 1) +
+        geom_vline(xintercept = input$b_limit, 
+                   color = "red", linetype = "dashed", size = 1) +
+        geom_vline(xintercept = input$b_target, 
+                   color = "#5D9741", linetype = "dashed", size = 1) +
+        #geom_vline(xintercept = input$current_stock, 
+        #           color = "orange", linetype = "solid", size = 1.5) +
+        geom_hline(yintercept = 0, color = "black", linetype = "solid", alpha = 0.3) +
+        coord_cartesian(clip = "off", ylim = c(-0.025*input$E_msy, input$E_msy)) +
+        xlim(0, 1)+ 
+        
+        # Add reference point labels
+        annotate("text", x = input$b_limit, y = 0.025*input$E_msy, 
+                 label = paste("Limit RP =", input$b_limit), 
+                 color = "red", hjust = -0.1) +
+        annotate("text", x = input$b_target, y = 0.025*input$E_msy,
+                 label = paste("Target RP =", input$b_target), 
+                 color = "#5D9741", hjust = -0.1) +
+        annotate("text", x = data$stock_ratio[93], y =input$E_msy ,
+                 label = paste("Constant fishing rate"), 
+                 color = "blue", hjust = 0.1) +
+        annotate("text", x = data$stock_ratio[97], y = max(data$constant,na.rm = TRUE),
+                 label = paste("Constant catch"), 
+                 color = "#005595", vjust = -1.5) +
+        annotate("text", x = input$b_nocatch, y = -0.025*input$E_msy,
+                 label = paste("No catch =", input$b_nocatch), 
+                 color = "black", hjust = -0.1) +
+        annotate("text", x = input$current_stock, y = data[data$stock_ratio==input$current_stock,2] * 1, 
+                 label = "Current Stock", 
+                 color = "black", hjust = 0.5,vjust =-2.5) +
+        
+        # Styling
+        labs(
+          #title = paste("Fisheries Control Rule -", stringr::str_to_title(input$rule_type), "Type"),
+          title = paste("Harvest Control Rule"),
+          x = "Relative Stock Size (SB/SB₀)",
+          y = "Relative Catch",
+          subtitle = "Red = Limit Reference Point; Green = Target Reference Point; Black dot = Current Stock; Purple dots= Buffered catches rule"
+        ) +
+        theme_minimal(base_size = 14) +
+        theme(
+          plot.title = element_text(size = 16, face = "bold"),
+          plot.subtitle = element_text(size = 12, color = "gray60"),
+          panel.grid.minor = element_blank()
+        ) 
+      #ylim(0, input$E_msy)
+      
+      # Add zone coloring
+      p <- p + 
+        annotate("rect", xmin = 0, xmax = input$b_limit, 
+                 ymin = 0, ymax = input$E_msy, 
+                 alpha = 0.1, fill = "red") +
+        annotate("rect", xmin = input$b_limit, xmax = input$b_target, 
+                 ymin = 0, ymax = input$E_msy, 
+                 alpha = 0.1, fill = "yellow") +
+        annotate("rect", xmin = input$b_target, xmax = 1, 
+                 ymin = 0, ymax = input$E_msy, 
+                 alpha = 0.1, fill = "#5D9741")
+      
+      print(p)
+    })
+    
+    # Generate stock status summary
+    output$stock_status <- renderText({
+      current_catch <- control_rule_data() %>%
+        filter(abs(stock_ratio - input$current_stock) == min(abs(stock_ratio - input$current_stock))) %>%
+        pull(catch) %>%
+        first()
+      #browser()
+      
+      data <- control_rule_data()
+      #Add threshhold option  
+      data$thresh<-data$constant<-NA
+      thresh.coefs<-coef(lm(c(0,data[data$stock_ratio==input$b_target,]$catch)~c(input$b_nocatch,input$b_target)))
+      data$thresh[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]+thresh.coefs[1]
+      data$constant[data$stock_ratio>=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio==input$b_target]+thresh.coefs[1]
+      
+      curr_stock_catch<-data[data$stock_ratio==input$current_stock,]
+      
+      paste0(
+        #"Overfishing limit at current stock size: ", round(current_catch, 3), " (relative units)\n",
+        "Overfishing limit (OFL) at current stock size: ", round(curr_stock_catch[2],3), " (relative units)\n",
+        "Threshhold control rule catch: ", round(curr_stock_catch[4],3), " (relative units)\n",
+        "Buffered catch (e.g., ABC): ", round(curr_stock_catch[4]*input$buffer,3), " (relative units)\n",
+        "Constant catch (catch at FMSY proxy at target biomass): ", round(curr_stock_catch[3]*input$buffer,3), " (relative units)\n"
+      )
+    })
+    
+    output$stock_status_RPs <- renderText({
+      status <- if (input$current_stock <= input$b_nocatch) {
+        "CRITICAL - Below Limit Reference Point"
+      } else if (input$current_stock < input$b_target) {
+        "CAUTIOUS - Between Limit and Target"
+      } else {
+        "HEALTHY - At or above Target Reference Point"
+      }
+      
+      
+      paste0(
+        "Current Stock Size (SB/SB₀): ", round(input$current_stock, 3), "\n",
+        "Current Stock Status: ", status, "\n",
+        "No Catch Point: ", input$b_nocatch, "\n",
+        "Limit (Overfished) Reference Point: ", input$b_limit, "\n",
+        "Target Reference Point: ", input$b_target, "\n\n",
+        "Management Zones:\n",
+        "• RED (0 - ", input$b_limit, "): Overfished - rebuilding plan\n",
+        "• YELLOW (", input$b_limit, " - ", input$b_target, "): Precautionary - Reduced fishing\n",
+        "• GREEN (", input$b_target, "+): Healthy - Full fishing allowed"
+      )
+    })  
+  })
+  
+  # observeEvent(input$goto_reports, {
+  #   nav_select("navbar", "reports4")
+  # })
+  
+
 ###############################
 # Scale, Status, Productivity #
 ###############################
@@ -1840,204 +2308,6 @@ server <- function(input, output, session) {
 
 
   
-######################################  
-# Reference Points and Control Rules #
-######################################
-  observeEvent(input$goto_refpts, {
-    nav_select("navbar", "refpts")
-    # Reactive function to calculate control rule
-    control_rule_data <- reactive({
-      # Validate inputs
-      req(input$b_nocatch, input$b_target, input$E_msy, 1)
-      
-      # Ensure b_target > b_nocatch
-      #    if (input$b_target <= input$b_nocatch) {
-      #      updateNumericInput(session, "b_target", value = input$b_nocatch + 0.1)
-      #    }
-      
-      # Create sequence of stock sizes
-      stock_ratio <- round(seq(0, 1, by = 0.01),2)
-      data.frame(
-        stock_ratio = stock_ratio,
-        catch = stock_ratio*input$E_msy
-      )
-      
-      
-      # Create linear models
-      
-      # Calculate catch based on control rule type
-      #   catch_values <- sapply(stock_ratio, function(b) {
-      #     browser()
-      #     if (b <= input$b_target) {
-      #       # Below limit: no fishing
-      #       return(stock_ratio*input$E_msy)
-      #       } 
-      #     else if (b >= input$b_target) {
-      #       # Above target: maximum sustainable catch
-      #       #return(input$max_catch)
-      #       #return(1)
-      #     #} else {
-      #       # Between limit and target: depends on rule type
-      #       #ratio <- (b - input$b_nocatch) / (input$b_target - input$b_nocatch)
-      #       
-      #       if(input$rule_type == "linear"){
-      #         #return(input$max_catch * ratio)
-      #         #return(lm(c(0,input$E_msy)~c(0,input$b_target))$coeff[2]*ratio)
-      #         return(stock_ratio*input$E_msy)
-      #       } 
-      #       
-      #       if(input$rule_type == "hockey"){
-      #         #return(ifelse(ratio > 0.5, input$max_catch, input$max_catch * ratio * 2))
-      #         return(ifelse(stock_ratio>=input$b_target,input$b_target*input$E_msy))
-      #       } 
-      #       
-      #       #else if (input$rule_type == "smooth") {
-      #         # Smooth S-curve transition
-      #       #  smooth_ratio <- 1 / (1 + exp(-10 * (ratio - 0.5)))
-      #       #  return(input$max_catch * smooth_ratio)
-      #       #}
-      #     }
-      #   })
-      # 
-      #       data.frame(
-      #     stock_ratio = stock_ratio,
-      #     catch = catch_values
-      #   )
-    })
-    
-    # Generate the control rule plot
-    output$control_rule_plot <- renderPlot({
-      data <- control_rule_data()
-      #Add threshhold option  
-      data$thresh<-data$constant<-NA
-      thresh.coefs<-coef(lm(c(0,data[data$stock_ratio==input$b_target,]$catch)~c(input$b_nocatch,input$b_target)))
-      data$thresh[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]+thresh.coefs[1]
-      data$constant[data$stock_ratio>=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio==input$b_target]+thresh.coefs[1]
-      
-      p <- ggplot(data, aes(x = stock_ratio, y = catch)) +
-        geom_line(color = "blue", size = 2) +
-        geom_line(aes(x = stock_ratio, y = catch*input$buffer),color = "#390878", size = 2,linetype="dotted") +
-        geom_line(aes(x = stock_ratio, y = thresh),color = "orange", size = 2) +
-        geom_line(aes(x = stock_ratio, y = thresh*input$buffer),color = "#390878", size = 2,linetype="dotted") +
-        geom_line(aes(x = stock_ratio, y = constant),color = "#005595", size = 2) +
-        geom_line(aes(x = stock_ratio, y = constant*input$buffer),color = "#390878", size = 2,linetype="dotted") +
-        geom_point(aes(data[data$stock_ratio==input$current_stock,1],data[data$stock_ratio==input$current_stock,2]),size=5, color="black",fill="white")+
-        #geom_abline(intercept = thresh.coefs[1],slope = thresh.coefs[2], 
-        #           color = "orange", linetype = "dashed", size = 1) +
-        geom_vline(xintercept = input$b_limit, 
-                   color = "red", linetype = "dashed", size = 1) +
-        geom_vline(xintercept = input$b_target, 
-                   color = "#5D9741", linetype = "dashed", size = 1) +
-        #geom_vline(xintercept = input$current_stock, 
-        #           color = "orange", linetype = "solid", size = 1.5) +
-        geom_hline(yintercept = 0, color = "black", linetype = "solid", alpha = 0.3) +
-        coord_cartesian(clip = "off", ylim = c(-0.025*input$E_msy, input$E_msy)) +
-        xlim(0, 1)+ 
-        
-        # Add reference point labels
-        annotate("text", x = input$b_limit, y = 0.025*input$E_msy, 
-                 label = paste("Limit RP =", input$b_limit), 
-                 color = "red", hjust = -0.1) +
-        annotate("text", x = input$b_target, y = 0.025*input$E_msy,
-                 label = paste("Target RP =", input$b_target), 
-                 color = "#5D9741", hjust = -0.1) +
-        annotate("text", x = data$stock_ratio[93], y =input$E_msy ,
-                 label = paste("Constant fishing rate"), 
-                 color = "blue", hjust = 0.1) +
-        annotate("text", x = data$stock_ratio[97], y = max(data$constant,na.rm = TRUE),
-                 label = paste("Constant catch"), 
-                 color = "#005595", vjust = -1.5) +
-        annotate("text", x = input$b_nocatch, y = -0.025*input$E_msy,
-                 label = paste("No catch =", input$b_nocatch), 
-                 color = "black", hjust = -0.1) +
-        annotate("text", x = input$current_stock, y = data[data$stock_ratio==input$current_stock,2] * 1, 
-                 label = "Current Stock", 
-                 color = "black", hjust = 0.5,vjust =-2.5) +
-        
-        # Styling
-        labs(
-          #title = paste("Fisheries Control Rule -", stringr::str_to_title(input$rule_type), "Type"),
-          title = paste("Harvest Control Rule"),
-          x = "Relative Stock Size (SB/SB₀)",
-          y = "Relative Catch",
-          subtitle = "Red = Limit Reference Point; Green = Target Reference Point; Black dot = Current Stock; Purple dots= Buffered catches rule"
-        ) +
-        theme_minimal(base_size = 14) +
-        theme(
-          plot.title = element_text(size = 16, face = "bold"),
-          plot.subtitle = element_text(size = 12, color = "gray60"),
-          panel.grid.minor = element_blank()
-        ) 
-      #ylim(0, input$E_msy)
-      
-      # Add zone coloring
-      p <- p + 
-        annotate("rect", xmin = 0, xmax = input$b_limit, 
-                 ymin = 0, ymax = input$E_msy, 
-                 alpha = 0.1, fill = "red") +
-        annotate("rect", xmin = input$b_limit, xmax = input$b_target, 
-                 ymin = 0, ymax = input$E_msy, 
-                 alpha = 0.1, fill = "yellow") +
-        annotate("rect", xmin = input$b_target, xmax = 1, 
-                 ymin = 0, ymax = input$E_msy, 
-                 alpha = 0.1, fill = "#5D9741")
-      
-      print(p)
-    })
-    
-    # Generate stock status summary
-    output$stock_status <- renderText({
-      current_catch <- control_rule_data() %>%
-        filter(abs(stock_ratio - input$current_stock) == min(abs(stock_ratio - input$current_stock))) %>%
-        pull(catch) %>%
-        first()
-      #browser()
-      
-      data <- control_rule_data()
-      #Add threshhold option  
-      data$thresh<-data$constant<-NA
-      thresh.coefs<-coef(lm(c(0,data[data$stock_ratio==input$b_target,]$catch)~c(input$b_nocatch,input$b_target)))
-      data$thresh[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio>=input$b_nocatch & data$stock_ratio<=input$b_target]+thresh.coefs[1]
-      data$constant[data$stock_ratio>=input$b_target]<-thresh.coefs[2]*data$stock_ratio[data$stock_ratio==input$b_target]+thresh.coefs[1]
-      
-      curr_stock_catch<-data[data$stock_ratio==input$current_stock,]
-      
-      paste0(
-        #"Overfishing limit at current stock size: ", round(current_catch, 3), " (relative units)\n",
-        "Overfishing limit (OFL) at current stock size: ", round(curr_stock_catch[2],3), " (relative units)\n",
-        "Threshhold control rule catch: ", round(curr_stock_catch[4],3), " (relative units)\n",
-        "Buffered catch (e.g., ABC): ", round(curr_stock_catch[4]*input$buffer,3), " (relative units)\n",
-        "Constant catch (catch at FMSY proxy at target biomass): ", round(curr_stock_catch[3]*input$buffer,3), " (relative units)\n"
-      )
-    })
-    
-    output$stock_status_RPs <- renderText({
-      status <- if (input$current_stock <= input$b_nocatch) {
-        "CRITICAL - Below Limit Reference Point"
-      } else if (input$current_stock < input$b_target) {
-        "CAUTIOUS - Between Limit and Target"
-      } else {
-        "HEALTHY - At or above Target Reference Point"
-      }
-      
-      
-      paste0(
-        "Current Stock Size (SB/SB₀): ", round(input$current_stock, 3), "\n",
-        "Current Stock Status: ", status, "\n",
-        "No Catch Point: ", input$b_nocatch, "\n",
-        "Limit (Overfished) Reference Point: ", input$b_limit, "\n",
-        "Target Reference Point: ", input$b_target, "\n\n",
-        "Management Zones:\n",
-        "• RED (0 - ", input$b_limit, "): Overfished - rebuilding plan\n",
-        "• YELLOW (", input$b_limit, " - ", input$b_target, "): Precautionary - Reduced fishing\n",
-        "• GREEN (", input$b_target, "+): Healthy - Full fishing allowed"
-      )
-    })  
-  })
-
-  # observeEvent(input$goto_reports, {
-  #   nav_select("navbar", "reports4")
-  # })
 
   ####################  
   # Baseline Shifter #

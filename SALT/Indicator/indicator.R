@@ -274,17 +274,23 @@ ui <- page_sidebar(
       #plotlyOutput("stock_time_series_Lt", height = "200px")
       uiOutput("stock_time_series_Lt_ui")
     ),
-    #Summary statistics card
+    #LH and Summary statistics card
+    card(
+      layout_columns(
+        card(
+      card_header("Life History Values"),
+      tableOutput("LH_values")
+    ),
     card(
       card_header("Summary Statistics"),
       tableOutput("summary_stats")
     ),
-
+#        col_widths = c(4,8)
+    )
+    ),
         col_widths = c(12,12,12,12)
     )
   )
-
-  
   
 )
 
@@ -531,7 +537,7 @@ server <- function(input, output, session) {
           ylab("Mean Length")+
           geom_hline(aes(yintercept = Linf.in),col="blue",linetype = "longdash")+
           geom_hline(aes(yintercept = L50.in),col="purple",linetype = "dash")+
-          ylim(0,NA)+
+          #ylim(NA,NA)+
           annotate("text",x=1,y=Linf.in+0.05*Linf.in,label="Linf",col="blue")+
           annotate("text",x=1,y=L50.in+0.05*L50.in,label="Lmat50%",col="purple")
             })
@@ -539,29 +545,53 @@ server <- function(input, output, session) {
     }
   })
   
-  # Calculate control rule
-
-  # Calculate statistics
-  # stats <- reactive({
-  #   data <- processed_data()
-  #   if(is.null(data) || nrow(data) == 0) return(NULL)
-  #   
-  #   values <- data$value
-  #   avg <- mean(values)
-  #   
-  #   list(
-  #     count = length(values),
-  #     mean = avg,
-  #     median = median(values),
-  #     sd = sd(values),
-  #     min = min(values),
-  #     max = max(values),
-  #     target = input$target_value,
-  #     difference = avg - input$target_value,
-  #     percent_diff = ((avg - input$target_value) / input$target_value) * 100
-  #   )
-  # })
+  output$LH_values <- renderTable({
+      if(input$stock.choice=="A")
+      {
+        M.in<-0.0375
+        Linf.in<-60.1
+        k.in<-0.08
+        t0.in<- -0.55
+        L50.in<- 46.5
+      }
+      
+      if(input$stock.choice=="B")
+      {
+        M.in<-0.068
+        Linf.in<-42.8
+        k.in<-0.13
+        t0.in<- -0.94
+        L50.in<- 29
+      }
+      
+      if(input$stock.choice=="C")
+      {
+        M.in<-0.145
+        Linf.in<-53
+        k.in<-0.143
+        t0.in<- -0.07
+        L50.in<- 42
+      }
+      
+      if(input$stock.choice=="D")
+      {
+        M.in<-0.099
+        Linf.in<-57.38
+        k.in<-0.128
+        t0.in<- -2.4
+        L50.in<- 39.4
+      }
+      
+    
+        data.frame(
+      Life_History_Parameter= c("M","Linf","k","t0","Lmat50%"),
+      Value = c(M.in,Linf.in,k.in,t0.in,L50.in)
+      )
+      
+    }, striped = TRUE
+  )
   
+    
   output$summary_stats <- renderTable({
     
     CR.in_Ct<-CR_calc_Ct()
@@ -588,52 +618,15 @@ server <- function(input, output, session) {
           round(CR.in_Lt,3)
         )
         # Length_CR = c(
-        #   input$Lt_I_in,
-        #   input$Lt_RP_in,
-        #   input$lt_equation_type,
-        #   CR.in_Lt
+        #   paste0("x"),
+        #   paste0("x"),
+        #   paste0("x"),
+        #   paste0("x")
         # )
       )
     }, striped = TRUE)
   
-  # Summary statistics table
-  # output$summary_stats <- renderTable({
-  #   s <- stats()
-  #   if(is.null(s)) return(data.frame(Statistic = "No valid data", Value = ""))
-  #   
-  #   data.frame(
-  #     Statistic = c("Count", "Mean", "Median", "Std Dev", "Min", "Max"),
-  #     Value = c(
-  #       s$count,
-  #       round(s$mean, 3),
-  #       round(s$median, 3),
-  #       round(s$sd, 3),
-  #       round(s$min, 3),
-  #       round(s$max, 3)
-  #     )
-  #   )
-  # }, striped = TRUE)
-  # 
-  # # Comparison results table
-  # output$comparison_results <- renderTable({
-  #   s <- stats()
-  #   if(is.null(s)) return(data.frame(Metric = "No valid data", Value = ""))
-  #   
-  #   status <- ifelse(s$difference > 0, "Above Target", 
-  #                    ifelse(s$difference < 0, "Below Target", "On Target"))
-  #   
-  #   data.frame(
-  #     Metric = c("Average", "Target", "Difference", "% Difference", "Status"),
-  #     Value = c(
-  #       round(s$mean, 3),
-  #       round(s$target, 3),
-  #       round(s$difference, 3),
-  #       paste0(round(s$percent_diff, 2), "%"),
-  #       status
-  #     )
-  #   )
-  # }, striped = TRUE)
-  
+
 }
 
 shinyApp(ui = ui, server = server)

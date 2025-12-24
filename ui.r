@@ -185,6 +185,31 @@ div(
   )
 ),
 
+##############
+# Indicators #
+##############
+div(
+  class = "col-md-4",
+  actionButton(
+    "goto_indicators",
+    label = div(
+      card(
+        card_header(
+          div(
+            tags$img(src = "Indicator_MP.png", height = "100px", width = "300px"),
+            h3("Indicators", class = "card-title")
+          )
+        ),
+        card_body(
+          p("Learn the basics of indicators and how they are interpreted by reference points and controls rules to meet management objectives.")
+        )
+      )
+    ),
+    class = "btn btn-link p-0 w-100",
+    style = "text-decoration: none; color: inherit;"
+  )
+),
+
 ####################
 # Reference Points #
 ####################
@@ -815,6 +840,303 @@ nav_panel(
     )
   ),
 
+
+########################
+# Reference points tab #
+########################
+nav_panel(
+  title = "Indicators",
+  value = "indicators",
+  
+  page_sidebar(
+    title = "Indicators: The essence of stock assessment",
+    
+    sidebar = sidebar(width=300,
+                      h4("Data Options"),
+                      
+                      pickerInput(inputId = 'stock.choice',
+                                  label = 'Choose A Stock',
+                                  choices = c("A","B","C","D"),
+                                  options = list(`style` = "btn-info")),
+                      
+                      downloadButton("download_indicator_data", "Download Stock Data", class = "btn-primary"),
+                      
+                      uiOutput("data.indicator"),
+                      
+                      # checkboxGroupButtons(
+                      #   inputId = "data.id",
+                      #   label = "Which data to consider: ",
+                      #   choices = c("Catch", "Index", "Mean Length"),
+                      #   size="sm"
+                      # ),
+                      
+                      # prettyCheckboxGroup( # or prettyRadioButtons
+                      #   inputId = "data.id",
+                      #   label = "Which data to consider",
+                      #   choices = c("Catch", "Index", "Mean Length"),
+                      #   outline = TRUE,
+                      #   plain = TRUE,
+                      #   status = "primary",
+                      #   icon = icon("check")
+                      # ),
+                      
+                      # Input for target value
+                      h5("Select indicator (I), reference point (RP), and control rule (CR) values"),
+                      h6("These are determined from analyzing the downloaded stock data"),
+                      
+                      h6(strong("Catch data")),
+                      fluidRow(
+                        column(width = 6,
+                               numericInput(
+                                 "Ct_I_in",
+                                 "I:",
+                                 value = 0,
+                                 min = NA, 
+                                 max = NA,
+                                 step = 0.01
+                               )),
+                        column(width = 6,
+                               numericInput(
+                                 "Ct_RP_in",
+                                 "RP:",
+                                 value = 0,
+                                 min = NA, 
+                                 max = NA,
+                                 step = 0.01
+                               ))),
+                      # numericInput(
+                      #   "Ct_CR_in",
+                      #   "CR:",
+                      #   value = 0,
+                      #   min = 0, 
+                      #   max = 100000000000,
+                      #   step = 0.01
+                      #        ),
+                      
+                      selectInput(
+                        "ct_equation_type",
+                        "Control Rule Option:",
+                        choices = list(
+                          "Simple ratio (CR= I/RP)" = "ct_ratio",
+                          "Cubic (CR = 0.2*((I/RP)-1)^3)" = "ct_cubic",
+                          "Cubic polynomial (CR = 0.2*((I/RP)-1)^3+0.05*((I/RP)-1))" = "ct_cubicpoly",
+                          "Custom Equation" = "ct_custom"
+                        ),
+                        selected = "ratio"
+                      ),
+                      
+                      # Conditional input for custom equation
+                      conditionalPanel(
+                        condition = "input.ct_equation_type == 'ct_custom'",
+                        textInput(
+                          "ct_custom_cr",
+                          "Enter Custom Equation:",
+                          value = "(I/RP)*0.95",
+                          placeholder = "e.g., (I/RP)*0.95"
+                        ),
+                        helpText("Use complete R function calls if using things like mean(), etc.")
+                      ),
+                      
+                      
+                      h6(strong("Index data")),
+                      fluidRow(
+                        column(width = 6,
+                               numericInput(
+                                 "I_I_in",
+                                 "I:",
+                                 value = 0,
+                                 min = NA, 
+                                 max = NA,
+                                 step = 0.01
+                               )),
+                        column(width = 6,
+                               numericInput(
+                                 "I_RP_in",
+                                 "RP:",
+                                 value = 0,
+                                 min = NA, 
+                                 max = NA,
+                                 step = 0.01
+                               ))),
+                      # numericInput(
+                      #           "I_CR_in",
+                      #           "CR:",
+                      #           value = 0,
+                      #           min = 0, 
+                      #           max = 100000000000,
+                      #           step = 0.01
+                      #         ),
+                      
+                      
+                      selectInput(
+                        "ind_equation_type",
+                        "Control Rule Option:",
+                        choices = list(
+                          "Simple ratio (CR= I/RP)" = "ind_ratio",
+                          "Cubic (CR = 0.2*((I/RP)-1)^3)" = "ind_cubic",
+                          "Cubic polynomial (CR = 0.2*((I/RP)-1)^3+0.05*((I/RP)-1))" = "ind_cubicpoly",
+                          "Custom Equation" = "ind_custom"
+                        ),
+                        selected = "ratio"
+                      ),
+                      
+                      # Conditional input for custom equation
+                      conditionalPanel(
+                        condition = "input.ind_equation_type == 'ind_custom'",
+                        textInput(
+                          "ind_custom_cr",
+                          "Enter Custom Equation:",
+                          value = "(I/RP)*0.95",
+                          placeholder = "e.g., (I/RP)*0.95"
+                        ),
+                        helpText("Use complete R function calls if using things like mean(), etc.")
+                      ),
+                      
+                      
+                      
+                      h6(strong("Mean length data")),
+                      fluidRow(
+                        column(width = 6,
+                               numericInput(
+                                 "Lt_I_in",
+                                 "I:",
+                                 value = 0,
+                                 min = NA, 
+                                 max = NA,
+                                 step = 0.01
+                               )),
+                        column(width = 6,
+                               numericInput(
+                                 "Lt_RP_in",
+                                 "RP:",
+                                 value = 0,
+                                 min = NA, 
+                                 max = NA,
+                                 step = 0.01
+                               ))),
+                      
+                      
+                      selectInput(
+                        "lt_equation_type",
+                        "Control Rule Option:",
+                        choices = list(
+                          "Simple ratio (CR= I/RP)" = "lt_ratio",
+                          "Cubic (CR = 0.2*((I/RP)-1)^3)" = "lt_cubic",
+                          "Cubic polynomial (CR = 0.2*((I/RP)-1)^3+0.05*((I/RP)-1))" = "lt_cubicpoly",
+                          "Custom Equation" = "lt_custom"
+                        ),
+                        selected = "ratio"
+                      ),
+                      
+                      # Conditional input for custom equation
+                      conditionalPanel(
+                        condition = "input.lt_equation_type == 'lt_custom'",
+                        textInput(
+                          "lt_custom_cr",
+                          "Enter Custom Equation:",
+                          value = "(I/RP)*0.95",
+                          placeholder = "e.g., (I/RP)*0.95"
+                        ),
+                        helpText("Use complete R function calls if using things like mean(), etc.")
+                      ),
+                      
+                      
+                      # Calculate button
+                      actionButton(
+                        "calculate_cr",
+                        "Run Control Rule(s)",
+                        class = "btn-primary",
+                        style = "width: 100%; margin-top: 10px;"
+                      )  
+    ),
+    
+    # Main panel with results
+    layout_columns(
+      card(
+        card_header("General Indicator-based Management Procedure"),
+        withMathJax(),
+        div(
+          style = "text-align: center; font-size:20px; margin: 10px 0;",
+          "$$\\ MM_{y} = \\ MM_{y-z} \\cdot \\ Modifier$$"
+        ),
+        p("Where:"),
+        tags$ul(
+          tags$li("MM = Management Metric. Examples are catch limits, effort, etc."),
+          tags$li("y = current year"),
+          tags$li(paste0("z = years before current year",em("y"))),
+          tags$li("Modifer = "),
+          tags$ol(
+            tags$li("Indicator (I) compared to reference point (RP). The indicator measures the current state. The reference point defines the desireable (e.g., target) and/or undesireable (e.g., limit) value of the stock, in the same metric as the indicator. For example, is the indicator more or less than the reference point?"),
+            tags$li("Control rule (CR)= the rule to adjust the managaement metric based on comparison to reference point.")
+          ),
+        ),
+        p("The control rule would then be the Modifier used in the general equation."),
+        p("An example of a simple control rule based on an Indicator (I) and Reference Point (RP) is:."),
+        div(
+          style = "text-align: center; font-size:20px; margin: 10px 0;",
+          "$$\\ CR = \\frac{I}{RP}$$"
+        ),
+        p("Indicators can be model-free (using the data directly) or model-based (from a stock assessment)."),
+        p("Examples of indicators are:"),
+        tags$ul(
+          tags$li("Model free:"),
+          tags$ol(
+            tags$li("Average Catch"),
+            tags$li("Indices of abundance (e.g., CPUE, density)"),
+            tags$li("Size or age-based metrics (mean values, SPR, relative to maturity, etc)"),
+            tags$li("Species composition"),
+            tags$li("Habitat condition or availability"),
+            tags$li("Fishing behavior (e.g, Distance traveled to fishing ground)"),
+            tags$li("Species composition")
+          ),
+          tags$li("Model-based:"),
+          tags$ol(
+            tags$li("Spawning Potential Ratio"),
+            tags$li("Relative stock size"),
+            tags$li("Absolute biomass"),
+            tags$li("Fishing rates (F or U)")
+          ),
+        ),
+      ),
+      
+      layout_columns(
+        # Time series plot
+        card_header("Simple Indicators"),
+        card(
+          #plotlyOutput("stock_time_series_Ct", height = "200px")
+          uiOutput("stock_time_series_Ct_ui")
+        ),
+        
+        card(
+          #plotlyOutput("stock_time_series_Index", height = "200px")
+          uiOutput("stock_time_series_Index_ui")
+        ),
+        
+        card(
+          #plotlyOutput("stock_time_series_Lt", height = "200px")
+          uiOutput("stock_time_series_Lt_ui")
+        ),
+        #LH and Summary statistics card
+        card(
+          layout_columns(
+            card(
+              card_header("Life History Values"),
+              tableOutput("LH_values")
+            ),
+            card(
+              card_header("Summary Statistics"),
+              tableOutput("summary_stats")
+            ),
+            #        col_widths = c(4,8)
+          )
+        ),
+        col_widths = c(12,12,12,12)
+      )
+    )
+    
+  )
+  
+),
 
 ########################
 # Reference points tab #

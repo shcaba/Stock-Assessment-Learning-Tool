@@ -1813,6 +1813,338 @@ observeEvent(input$goto_uncertainty, {
   
 }) 
 
+  ##############  
+  # Indicators #
+  ##############
+  
+  observeEvent(input$goto_indicators, {
+    nav_select("navbar", "indicators")
+    
+  stock.data <- readRDS("stock_data.RDS")
+  data.colors<-viridis(3)
+  
+  data.sub<-reactive({
+    data.sub<-subset(stock.data,Stock==input$stock.choice)
+  })
+  
+  
+  # observeEvent(input$calculate_cr, {
+  #   # Code here runs ONLY when 'event_expression' changes or is triggered
+  #   print("An event occurred!")
+  #   showModal(modalDialog(title = "Triggered", "The event happened!"))
+  # })
+  #Equation choices
+  
+  #CR_calc_Ct<-eventReactive(input$calculate_cr, {
+  CR_calc_Ct<-reactive({
+    
+    CR_calc_Ct<-NA
+    if (input$ct_equation_type == "ct_custom") {
+      cr.calc.ct<-input$ct_custom_cr
+    } 
+    else {
+      cr.calc.ct<-switch(input$ct_equation_type,
+                         "ct_ratio" = "I/RP",
+                         "ct_cubic" = "0.2*((I/RP)-1)^3",
+                         "ct_cubicpoly" = "0.2*((I/RP)-1)^3+0.05*((I/RP)-1)" 
+      )
+    }
+    #      if(!is.null(input$data.id) & any(input$data.id=="Catch"))
+    #      {
+    I=input$Ct_I_in 
+    RP= input$Ct_RP_in 
+    if(I!=0 & RP != 0){CR_calc_Ct<-eval(parse(text=cr.calc.ct))}
+    #     }
+    CR_calc_Ct
+  })
+  
+  CR_calc_Ind<-reactive({
+    
+    CR_calc_Ind<-NA
+    if (input$ind_equation_type == "ind_custom") {
+      cr.calc.ind<-input$ind_custom_cr
+    } 
+    else {
+      cr.calc.ind<-switch(input$ind_equation_type,
+                          "ind_ratio" = "I/RP",
+                          "ind_cubic" = "0.2*((I/RP)-1)^3",
+                          "ind_cubicpoly" = "0.2*((I/RP)-1)^3+0.05*((I/RP)-1)" 
+      )
+    }
+    #      if(!is.null(input$data.id) & any(input$data.id=="Catch"))
+    #      {
+    I=input$I_I_in 
+    RP= input$I_RP_in 
+    if(I!=0 & RP != 0){CR_calc_Ind<-eval(parse(text=cr.calc.ind))}
+    #     }
+    CR_calc_Ind
+  })
+  
+  CR_calc_Lt<-reactive({
+    
+    CR_calc_Lt<-NA
+    if (input$lt_equation_type == "lt_custom") {
+      cr.calc.lt<-input$lt_custom_cr
+    } 
+    else {
+      cr.calc.lt<-switch(input$lt_equation_type,
+                         "lt_ratio" = "I/RP",
+                         "lt_cubic" = "0.2*((I/RP)-1)^3",
+                         "lt_cubicpoly" = "0.2*((I/RP)-1)^3+0.05*((I/RP)-1)" 
+      )
+    }
+    #      if(!is.null(input$data.id) & any(input$data.id=="Catch"))
+    #      {
+    I=input$Lt_I_in 
+    RP= input$Lt_RP_in 
+    if(I!=0 & RP != 0){CR_calc_Lt<-eval(parse(text=cr.calc.lt))}
+    #     }
+    CR_calc_Lt
+  })
+  
+  
+  output$data.indicator <- renderUI({
+    checkboxGroupButtons(
+      inputId = "data.id",
+      label = "Which data to consider: ",
+      choices = c("Catch", "Index", "Mean Length"),
+      size="sm"
+    )
+  })
+  
+  output$download_indicator_data <- downloadHandler(
+    filename = function() {
+      paste("stock_",input$stock.choice,"_indicator_data_", Sys.Date(), ".csv", sep = "")
+    },
+    content = function(file) {
+      req(data.sub())
+      write.csv(data.sub(), file, row.names = FALSE)
+    }
+  )
+  
+  #Indicator plots
+  output$stock_time_series_Ct_ui<-renderUI({
+    
+    if(!is.null(input$Ct_I_in)){I_in<-NA}
+    if(!is.null(input$Ct_RP_in)){RP_in<-NA}
+    if(input$Ct_I_in>=0){I_in<-input$Ct_I_in}
+    if(input$Ct_RP_in>=0){RP_in<-input$Ct_RP_in}
+    
+    ct.label <- data.frame(
+      Year = c(76, 76),
+      Catch = c(I_in, RP_in),
+      label = c("Indicator", "Ref. Pt.")
+    )
+    
+    if(!is.null(input$data.id) & any(input$data.id=="Catch"))
+    {
+      output$stock_time_series_Ct <- renderPlotly({
+        data.plot<-data.sub()
+        ggplot(data.plot,aes(Year, Catch))+
+          geom_line(col=data.colors[1])+
+          geom_point(col=data.colors[1])+
+          geom_point(data=ct.label,aes(Year,Catch,fill=label),shape=c(22,23),size=3)+
+          scale_fill_manual(values=c("orange","red"))+
+          labs(fill="")+
+          theme_bw()+
+          theme(legend.position = "bottom")+
+          xlab("Year")+
+          ylab("Total Catch")
+      })
+      
+    }
+  })
+  
+  output$stock_time_series_Index_ui<-renderUI({
+    
+    if(!is.null(input$I_I_in)){I_in<-NA}
+    if(!is.null(input$I_RP_in)){RP_in<-NA}
+    if(input$I_I_in>=0){I_in<-input$I_I_in}
+    if(input$I_RP_in>=0){RP_in<-input$I_RP_in}
+    
+    ind.label <- data.frame(
+      Year = c(76, 76),
+      Index = c(I_in, RP_in),
+      label = c("Indicator", "Ref. Pt.")
+    )
+    
+    if(!is.null(input$data.id) & any(input$data.id=="Index"))
+    {
+      output$stock_time_series_Ct <- renderPlotly({
+        data.plot<-data.sub()
+        ggplot(data.plot,aes(Year, Index))+
+          geom_line(col=data.colors[2])+
+          geom_point(col=data.colors[2])+
+          geom_point(data=ind.label,aes(Year,Index,fill=label),shape=c(22,23),size=3)+
+          scale_fill_manual(values=c("orange","red"))+
+          labs(fill="")+
+          theme_bw()+
+          theme(legend.position = "bottom")+
+          xlab("Year")+
+          ylab("Index")
+      })
+      
+    }
+  })
+  
+  output$stock_time_series_Lt_ui<-renderUI({
+    
+    if(!is.null(input$Lt_I_in)){I_in<-NA}
+    if(!is.null(input$Lt_RP_in)){RP_in<-NA}
+    if(input$Lt_I_in>=0){I_in<-input$Lt_I_in}
+    if(input$Lt_RP_in>=0){RP_in<-input$Lt_RP_in}
+    
+    lt.label <- data.frame(
+      Year = c(76, 76),
+      Mean.Length = c(I_in, RP_in),
+      label = c("Indicator", "Ref. Pt.")
+    )
+    
+    
+    if(!is.null(input$data.id) & any(input$data.id=="Mean Length"))
+    {
+      if(input$stock.choice=="A")
+      {
+        M.in<-0.0375
+        Linf.in<-60.1
+        k.in<-0.08
+        t0.in<- -0.55
+        L50.in<- 46.5
+      }
+      
+      if(input$stock.choice=="B")
+      {
+        M.in<-0.068
+        Linf.in<-42.8
+        k.in<-0.13
+        t0.in<- -0.94
+        L50.in<- 29
+      }
+      
+      if(input$stock.choice=="C")
+      {
+        M.in<-0.145
+        Linf.in<-53
+        k.in<-0.143
+        t0.in<- -0.07
+        L50.in<- 42
+      }
+      
+      if(input$stock.choice=="D")
+      {
+        M.in<-0.099
+        Linf.in<-57.38
+        k.in<-0.128
+        t0.in<- -2.4
+        L50.in<- 39.4
+      }
+      
+      
+      output$stock_time_series_Ct <- renderPlotly({
+        data.plot<-data.sub()
+        ggplot(data.plot,aes(Year, Mean.Length))+
+          geom_line(col=data.colors[3])+
+          geom_point(col=data.colors[3])+
+          geom_point(data=lt.label,aes(Year,Mean.Length,fill=label),shape=c(22,23),size=3)+
+          scale_fill_manual(values=c("orange","red"))+
+          labs(fill="")+
+          theme_bw()+
+          theme(legend.position = "bottom")+
+          xlab("Year")+
+          ylab("Mean Length")+
+          geom_hline(aes(yintercept = Linf.in),col="blue",linetype = "longdash")+
+          geom_hline(aes(yintercept = L50.in),col="purple",linetype = "dash")+
+          #ylim(NA,NA)+
+          annotate("text",x=1,y=Linf.in+0.05*Linf.in,label="Linf",col="blue")+
+          annotate("text",x=1,y=L50.in+0.05*L50.in,label="Lmat50%",col="purple")
+      })
+      
+    }
+  })
+  
+  output$LH_values <- renderTable({
+    if(input$stock.choice=="A")
+    {
+      M.in<-0.0375
+      Linf.in<-60.1
+      k.in<-0.08
+      t0.in<- -0.55
+      L50.in<- 46.5
+    }
+    
+    if(input$stock.choice=="B")
+    {
+      M.in<-0.068
+      Linf.in<-42.8
+      k.in<-0.13
+      t0.in<- -0.94
+      L50.in<- 29
+    }
+    
+    if(input$stock.choice=="C")
+    {
+      M.in<-0.145
+      Linf.in<-53
+      k.in<-0.143
+      t0.in<- -0.07
+      L50.in<- 42
+    }
+    
+    if(input$stock.choice=="D")
+    {
+      M.in<-0.099
+      Linf.in<-57.38
+      k.in<-0.128
+      t0.in<- -2.4
+      L50.in<- 39.4
+    }
+    
+    
+    data.frame(
+      Life_History_Parameter= c("M","Linf","k","t0","Lmat50%"),
+      Value = c(M.in,Linf.in,k.in,t0.in,L50.in)
+    )
+    
+  }, striped = TRUE
+  )
+  
+  
+  output$summary_stats <- renderTable({
+    
+    CR.in_Ct<-CR_calc_Ct()
+    CR.in_I<-CR_calc_Ind()
+    CR.in_Lt<-CR_calc_Lt()
+    data.frame(
+      Statistic = c("Ct I", "Ct RP", "Control Rule", "CR value"),
+      Catch_CR = c(
+        input$Ct_I_in,
+        input$Ct_RP_in,
+        input$ct_equation_type,
+        round(CR.in_Ct,3)
+      ),
+      Index_CR = c(
+        input$I_I_in,
+        input$I_RP_in,
+        input$ind_equation_type,
+        round(CR.in_I,3)
+      ),
+      Length_CR = c(
+        input$Lt_I_in,
+        input$Lt_RP_in,
+        input$lt_equation_type,
+        round(CR.in_Lt,3)
+      )
+      # Length_CR = c(
+      #   paste0("x"),
+      #   paste0("x"),
+      #   paste0("x"),
+      #   paste0("x")
+      # )
+    )
+  }, striped = TRUE)
+  
+  })
+  
   ######################################  
   # Reference Points and Control Rules #
   ######################################

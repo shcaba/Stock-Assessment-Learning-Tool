@@ -312,6 +312,7 @@ div(
         #Natural Mortality & Growth (von Bertalanffy) Parameters 
         card(
           card_header("Natural Mortality (M)"),
+          h6("Use ",tags$a(href = "https://connect.fisheries.noaa.gov/natural-mortality-tool/", "The Natural Mortality Tool", target = "_blank")," to use empiricial methods of estimating natural mortality."),
           numericInput("M", "Natural Mortality Rate (M)", value = 0.2, min = 0.01, max = 2, step = 0.01)
         ),
         card(

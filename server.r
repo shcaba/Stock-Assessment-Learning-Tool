@@ -2508,20 +2508,6 @@ observeEvent(input$goto_uncertainty, {
       print(c(SSP_choices.in.status,SSP_choices.in.scale,SSP_choices.in.prod,SSP_choices.in.status_prod,SSP_choices.in.scale_prod))
       load(paste0(getwd(),"/mod_summary.RDS"))  
       load(paste0(getwd(),"/Catches.RDS"))
-      #myPicker_SSP<-c(input$myPicker_SSP_status,input$myPicker_SSP_scale,input$myPicker_SSP_prod,input$myPicker_SSP_status_prod,input$myPicker_SSP_scale_prod)
-      #Dir_SSP<-getwd()  
-      #SSP_mod_dir <-NULL
-      #SSP_mod_dir[1]<-paste0(Dir_SSP,"/Models/Status40%")
-      #browser()
-      #for(i in 1:(length(input$myPicker_SSP)))
-      #{SSP_mod_dir[i+1] <- paste0(Dir_SSP,"/Models/" ,paste(ssp.folder.names[SSP_choices%in%input$myPicker_SSP][i],collapse="_"))}
-      #ssp.mod.prep<-r4ss::SSgetoutput(
-      #dirvec=SSP_mod_dir,
-      #  keyvec=1:length(SSP.model.list), 
-      #  getcovar=FALSE
-      #)
-      
-      #ssp_summary<- SSsummarize(ssp.mod.prep)
       
       colnames(ssp_summary$SpawnBio)[1:(length(colnames(ssp_summary$SpawnBio))-2)]<-colnames(ssp_summary$Bratio)[1:(length(colnames(ssp_summary$Bratio))-2)]<-c("Status 40%",SSP_choices)
       mod_indices<-c(2:ssp_summary$n)[SSP_choices%in%input$myPicker_SSP_grouped]
@@ -2530,7 +2516,7 @@ observeEvent(input$goto_uncertainty, {
       #Catches<-Catches[Catches$Model%in%c("Status40%",ssp.folder.names[SSP_choices%in%input$myPicker_SSP]),]
       Catches<-as.data.frame(Catches)
       Catches<-Catches[Catches$Model%in%c("Status 40%",input$myPicker_SSP_grouped),]
-      Catches$Model<-c("Status 40%",SSP_choices[SSP_choices%in%input$myPicker_SSP_grouped])
+      #Catches$Model<-c("Status 40%",SSP_choices[SSP_choices%in%input$myPicker_SSP_grouped])
       #try(SSplotComparisons(ssp_summary, subplots=c(1,3),legendlabels = c("Status40%",input$myPicker_SSP),endyrvec=2020, ylimAdj = 1.30, new = FALSE,plot=FALSE,print=TRUE, legendloc = 'topleft',uncertainty=TRUE,plotdir=paste0(Dir_SSP,"/Comparisons"),btarg=0.4,minbthresh=0.25))
       
       #Pull future catch values
@@ -2555,7 +2541,7 @@ observeEvent(input$goto_uncertainty, {
       #Create plots
       output$Catches <- renderPlotly({
         p_catch<-ggplot(Catches,aes(Yr,dead_bio,color=Model))+
-          geom_line()+
+          geom_line(lwd=1.1)+
           xlab("Year")+
           ylab("Remvoals (in biomass)")+
           ylim(0,NA)+
@@ -2570,7 +2556,7 @@ observeEvent(input$goto_uncertainty, {
       
       output$Scale <- renderPlotly({
         p_scale<-ggplot(SpawnOutput,aes(Yr,Scale,color=variable))+
-          geom_line(lwd=1.25)+
+          geom_line(lwd=1.1)+
           xlab("Year")+
           ylab("Scale (Spawning Output)")+
           ylim(0,NA)+
@@ -2585,7 +2571,7 @@ observeEvent(input$goto_uncertainty, {
       
       output$Status <- renderPlotly({
         p_status<-ggplot(Bratio,aes(Yr,Status,color=variable))+
-          geom_line(lwd=1.25)+
+          geom_line(lwd=1.1)+
           xlab("Year")+
           ylab("Status (Size relative to unfished)")+
           ylim(0,NA)+

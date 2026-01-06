@@ -747,15 +747,15 @@ nav_panel(
       card(
         card_header("Life History Parameters"),
         fluidRow(
-          column(width = 6,numericInput("M", "Natural Mortality (M)", value = 0.2, min = 0.05, max = 0.5, step = 0.01)),
-          column(width = 6,numericInput("Linf", "Asymptotic Length (Linf)", value = 60, min = 5, max = 2000, step = 1))),
+          column(width = 6,numericInput("M_bc", "Natural Mortality (M)", value = 0.2, min = 0.05, max = 0.5, step = 0.01)),
+          column(width = 6,numericInput("Linf_bc", "Asymptotic Length (Linf)", value = 60, min = 5, max = 2000, step = 1))),
         fluidRow(
-          column(width = 6,numericInput("K", "Growth Coefficient (K)", value = 0.13, min = 0.001, max = 2, step = 0.01)),
-          column(width = 6,numericInput("t0", "Age at Size 0 (t0)", value = -1, min = -10, max = 0, step = 0.1))),
+          column(width = 6,numericInput("K_bc", "Growth Coefficient (K)", value = 0.13, min = 0.001, max = 2, step = 0.01)),
+          column(width = 6,numericInput("t0_bc", "Age at Size 0 (t0)", value = -1, min = -10, max = 0, step = 0.1))),
         h6("Length at Maturity"),
         fluidRow(
-          column(width = 6,numericInput("L50", "L50%", value = 60*0.65, min = 0.1, max = 10000, step = 0.1)),
-          column(width = 6,numericInput("L95", "L95%", value = 60*0.8, min = 0.2, max = 10000, step = 0.1)))
+          column(width = 6,numericInput("L50_bc", "L50%", value = 60*0.65, min = 0.1, max = 10000, step = 0.1)),
+          column(width = 6,numericInput("L95_bc", "L95%", value = 60*0.8, min = 0.2, max = 10000, step = 0.1)))
       ),
       
       #    card(
@@ -774,7 +774,7 @@ nav_panel(
         helpText("Selectivity at L95 should be greater than selectivity at L50 for ascending limb"),
         fluidRow(
           column(width = 6,numericInput("peak_length", "Peak Length (mode):", value = 60, min = 0, step = 0.1)),
-          column(width = 6,numericInput("desc_sd", "Standard Deviation:", value = 15, min = 0.1, step = 0.1))),
+          column(width = 6,numericInput("desc_sd", "Standard Deviation:", value = 100, min = 0.1, step = 0.1))),
         helpText("The standard deviation controls the width of the dome."),
         helpText("To make logistic selectivity, the peak length can be made larger than the largest size in the population.")
       ),

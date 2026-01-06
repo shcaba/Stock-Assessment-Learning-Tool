@@ -223,8 +223,8 @@ server <- function(input, output, session) {
       data <- plot_data()
       maxage<-5.4/input$M+0.2*(5.4/input$M)
       age_at_size<-input$t0-((log(1-(c(input$L50,input$L95)/input$Linf))/input$K))
-      size_at_maxage<-input$Linf * (1 - exp(-input$K * (maxage - input$t0)))
-      
+      size_at_maxage<-input$Linf * (1 - exp(-input$K * (5.4/input$M - input$t0)))
+
       p <- ggplot(data.frame(Age = data$ages, Length = data$length_at_age), 
                   aes(x = Age, y = Length)) +
         geom_line(color = "blue", size = 1.2) +
@@ -1400,15 +1400,15 @@ observeEvent(input$goto_uncertainty, {
   # Reactive calculations
   populations <- reactive({
     
-    ages <- 0:(5.4/input$M) #Using the Cope and Hamel tmax to M relationship
+    ages <- 0:(5.4/input$M_bc) #Using the Cope and Hamel tmax to M relationship
     
     # Calculate unfished population
     unfished <- calculate_population(
       ages = ages,
-      Linf = input$Linf,
-      K = input$K,
-      t0 = input$t0,
-      M = input$M,
+      Linf = input$Linf_bc,
+      K = input$K_bc,
+      t0 = input$t0_bc,
+      M = input$M_bc,
       R0 = 1000,
       F_mort = 0
     )
@@ -1416,10 +1416,10 @@ observeEvent(input$goto_uncertainty, {
     # Calculate fished population
     fished <- calculate_population(
       ages = ages,
-      Linf = input$Linf,
-      K = input$K,
-      t0 = input$t0,
-      M = input$M,
+      Linf = input$Linf_bc,
+      K = input$K_bc,
+      t0 = input$t0_bc,
+      M = input$M_bc,
       R0 = 1000,
       F_mort = input$F_mort,
       L50_asc=input$L50_asc, 
@@ -1574,9 +1574,9 @@ observeEvent(input$goto_uncertainty, {
       labs(x = "Length", y = "Proportion", title = "Selected Length Distribution: Fished vs Unfished") +
       theme_minimal() +
       theme(legend.position = "bottom")+
-      geom_vline(xintercept = c(input$L50,input$Linf),linetype="dashed",col=c("green","orange"))+
-      annotate("text",x=input$L50+input$Linf*0.05,y=max.d+max.d*0.2,label="L50",col="green")+
-      annotate("text",x=input$Linf+input$Linf*0.05,y=max.d+max.d*0.2,label="Linf",col="orange")
+      geom_vline(xintercept = c(input$L50_bc,input$Linf_bc),linetype="dashed",col=c("green","orange"))+
+      annotate("text",x=input$L50_bc+input$Linf_bc*0.05,y=max.d+max.d*0.2,label="L50",col="green")+
+      annotate("text",x=input$Linf_bc+input$Linf_bc*0.05,y=max.d+max.d*0.2,label="Linf",col="orange")
     
     ggplotly(p, tooltip = c("x", "y", "colour"))
   })
@@ -1584,9 +1584,11 @@ observeEvent(input$goto_uncertainty, {
   
   # Selectivity plot
   output$selectivity_plot_lt <- renderPlot({
+    #browser()
+    ages <- 1:(5.4/input$M_bc)
+    lengths <- c(0:input$Linf_bc+0.2*input$Linf_bc)
     
-    ages <- 1:(5.4/input$M)
-    lengths <- von_bertalanffy(ages, input$Linf, input$K, input$t0)
+    #lengths <- von_bertalanffy(ages, input$Linf_bc, input$K_bc, input$t0_bc)
     selectivity <- calc_selectivity(
       length = lengths,
       L50_asc=input$L50_asc, 
@@ -1596,19 +1598,19 @@ observeEvent(input$goto_uncertainty, {
     
     sel_data<-data.frame(Length=lengths,Selectivity=selectivity)
     sel.pts<-data.frame(Length=c(input$L50_asc,input$L95_asc),Prop=c(0.5,0.95))
-    maturity_lengths<-1 / (1 + exp(-log(19) * (lengths - input$L50) / (input$L95 - input$L50)))
-    mat.pts<-data.frame(Length=c(input$L50,input$L95),Prop=c(0.5,0.95))
+    maturity_lengths<-1 / (1 + exp(-log(19) * (lengths - input$L50_bc) / (input$L95_bc - input$L50_bc)))
+    mat.pts<-data.frame(Length=c(input$L50_bc,input$L95_bc),Prop=c(0.5,0.95))
     
     desc_vals <- desc_params()
     
     p<-ggplot(sel_data, aes(x = Length, y = Selectivity)) +
       geom_line(aes(color = "black"), size = 1.5) +
       geom_point(data=sel.pts,aes(x=Length,y=Prop,col="black"),fill="gray",size=5,pch=21)+
-      annotate("text",sel.pts$Length-(input$Linf*0.08),sel.pts$Prop,label=c("Sel50%","Sel95%"))+
+      annotate("text",sel.pts$Length-(input$Linf_bc*0.08),sel.pts$Prop,label=c("Sel50%","Sel95%"))+
       #geom_point(aes(x=input$L95_asc,y=0.95,col="black"),fill="gray",size=4,pch=21)+
       geom_line(aes(y = maturity_lengths,col="pink"),size = 1.5)+
       geom_point(data=mat.pts,aes(x=Length,y=Prop,col="pink"),fill="pink4",size=5,pch=21)+
-      annotate("text",mat.pts$Length+input$Linf*0.08,mat.pts$Prop,label=c("Lmat50%","Lmat95%"))+
+      annotate("text",mat.pts$Length+input$Linf_bc*0.08,mat.pts$Prop,label=c("Lmat50%","Lmat95%"))+
       #geom_point(aes(x=input$L95,y=0.95,col="pink"),fill="pink4",size=4,pch=21)+
       #geom_point(aes(x=input$peak_length,y=1,col="purple"),fill="violet",size=4,pch=21)+
       #geom_hline(yintercept = c(0.5, 0.95), linetype = "dashed", alpha = 0.6, color = "blue") +
@@ -1653,7 +1655,6 @@ observeEvent(input$goto_uncertainty, {
     age_data_unfished<-do.call(c,mapply(function(x) rep(pops$unfished$age[x],round(pops$unfished$numbers[x],0)),x=1:nrow(pops$unfished),SIMPLIFY=TRUE))
     age_data_unfish_df<-data.frame(age=age_data_unfished,population="Unfished")
     
-    
     #Lengths
     lt_data_fished<-do.call(c,mapply(function(x) rnorm(round(pops$fished$numbers[x]*pops$fished$selectivity[x],0),pops$fished$length[x],pops$fished$length[x]*0.1),x=1:nrow(pops$fished),SIMPLIFY=TRUE))
     lt_data_fish_df<-data.frame(length=lt_data_fished,population="Fished")
@@ -1667,8 +1668,8 @@ observeEvent(input$goto_uncertainty, {
     colnames(agelt_unfished_df)[1]<-colnames(agelt_fished_df)[1]<-"age"
     
     #Calculate age at maturity lengths
-    age.mat<-input$t0 - (log(1 - (c(input$L50,input$L95) / input$Linf)) / input$K)
-    age.lt.mat<-data.frame(Age=age.mat,Length=c(input$L50,input$L95))
+    age.mat<-input$t0_bc - (log(1 - (c(input$L50_bc,input$L95_bc) / input$Linf_bc)) / input$K_bc)
+    age.lt.mat<-data.frame(Age=age.mat,Length=c(input$L50_bc,input$L95_bc))
     
     data <- populations()$unfished
     
@@ -1691,7 +1692,7 @@ observeEvent(input$goto_uncertainty, {
       geom_line(aes(y = length, color = "Length"), size = 1.2) +
       geom_point(aes(y = length, color = "Length"), size = 2) +
       geom_point(data=age.lt.mat, aes(x = Age,y=Length), size = 5, shape = 21,col="black",fill="lightblue") +
-      annotate("text",age.lt.mat$Age+(5.4/input$M)*0.08,age.lt.mat$Length,label=c("Lmat50%","Lmat95%"))+
+      annotate("text",age.lt.mat$Age+(5.4/input$M_bc)*0.08,age.lt.mat$Length,label=c("Lmat50%","Lmat95%"))+
       
       # Add second y-axis
       scale_y_continuous(
@@ -1712,8 +1713,8 @@ observeEvent(input$goto_uncertainty, {
       
       labs(
         title = "Age-Length Relationship and Population Decline by Natural Mortality",
-        subtitle = paste0("von Bertalanffy: L∞=", input$Linf, ", k=", input$K, ", t₀=", input$t0, 
-                          " | Natural Mortality: M=", input$M," | Maximum age: M=",5.4/input$M),
+        subtitle = paste0("von Bertalanffy: L∞=", input$Linf_bc, ", k=", input$K, ", t₀=", input$t0_bc, 
+                          " | Natural Mortality: M=", input$M_bc," | Maximum age: M=",5.4/input$M_bc),
         x = "Age (years)",
         caption = "Solid line: Length-at-age | Dashed line: Population decline due to natural mortality"
       ) +
@@ -1746,8 +1747,6 @@ observeEvent(input$goto_uncertainty, {
   output$stock_status <- renderTable({
     status <- stock_status()
     mean_age_lt<- mean_bio_comp()
-    
-    
     
     data.frame(
       Metric = c("Spawning Biomass Ratio (SSB/SSB0)", 
@@ -1796,7 +1795,7 @@ observeEvent(input$goto_uncertainty, {
     status <- stock_status()
     mean_age_lt<- mean_bio_comp()
     
-    results_cap<-rbind(results_out(),c(round(status$SSB_ratio, 2),round(status$B_ratio, 2),round(mean_age_lt[2],2),round(mean_age_lt[1],2),input$M,input$Linf,input$K,input$t0,input$L50,input$L95,input$L50_asc,input$L95_asc,input$peak_length,input$desc_sd))
+    results_cap<-rbind(results_out(),c(round(status$SSB_ratio, 2),round(status$B_ratio, 2),round(mean_age_lt[2],2),round(mean_age_lt[1],2),input$M_bc,input$Linf_bc,input$K_bc,input$t0_bc,input$L50_bc,input$L95_bc,input$L50_asc,input$L95_asc,input$peak_length,input$desc_sd))
     #rownames(pop_samples_cap)<-c("Sampled Population","True Population")
     results_out(results_cap)
   })

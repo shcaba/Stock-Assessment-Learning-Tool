@@ -1,0 +1,13 @@
+name: stock-assessment-learning-tool
+title: Stock-Assessment-Learning-Tool
+username: jason.cope
+account: jason.cope
+server: test-connect.fisheries.noaa.gov
+hostUrl: https://test-connect.fisheries.noaa.gov/__api__
+appId: 434
+bundleId: 2615
+url: https://test-connect.fisheries.noaa.gov/content/194f495d-7122-4a14-9777-0420cfc5eafc/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Development files

@@ -121,13 +121,13 @@ ui <- page_sidebar(
     # Reset button
     actionButton("reset", "Begin Again", 
                  class = "btn-outline-primary mb-3", 
-                 style = "width: 100%;"),
+                 style = "width: 50%;"),
     
     # Path display
     conditionalPanel(
       condition = "output.show_path",
       card(
-        card_header("Your Data Checklist"),
+        card_header("Your Data Pathway"),
         card_body(
           htmlOutput("path_display")
         )
@@ -149,12 +149,14 @@ ui <- page_sidebar(
         card_body(
           p("This interactive decision tree will help you navigate through different stock assessment options.", 
             class = "text-center"),
-          p("Click 'Start' to traverse the Stock Assessment Continuum.", class = "text-center"),
+          p("Click 'Start' to traverse the Stock Assessment Continuum (SAC).", class = "text-center"),
           div(
-            actionButton("start", "Start Decision Tree", 
-                         class = "btn-primary btn-lg"),
+            actionButton("start", "Start SAC Decision Tree", 
+                         class = "btn-outline-primary mb-3"),
+            #class = "btn-primary btn-lg"),
             class = "text-center"
-          )
+          ),
+          imageOutput("SACImage_init")
         )
       )
     ),
@@ -168,9 +170,13 @@ ui <- page_sidebar(
         ),
         card_body(
           uiOutput("choices_ui"),
-          br(),
           actionButton("go_back", "Go Back", 
-                       class = "btn-outline-secondary"),
+                       width="10%",
+#                       style='padding:4px; font-size:100%'),
+                        class = "text-center",
+                        class = "btn-outline-secondary"),
+#                       class = "btn-outline-secondary"),
+              align = "center",
           imageOutput("SACImage")
         ),
        
@@ -192,9 +198,14 @@ ui <- page_sidebar(
                          class = "btn-primary"),
             actionButton("go_back_outcome", "Go Back", 
                          class = "btn-outline-secondary"),
-             imageOutput("SACImage_out")
+            imageOutput("SACImage_out")
           )
-                  )
+                  ),
+        card_body(
+          h6("All scale-based options, as well as the length and/or age only models, can be done in ",tags$a(href = "https://github.com/shcaba/SS-DL-tool", "The Stock Assessment Continuum Tool", target = "_blank")),
+          h6(tags$a(href = "https://connect.fisheries.noaa.gov/psa/", "The Productivity-Susceptibility Analysis", target = "_blank")," is a form of Risk Analysis that can be used when all other data are unavailable."),
+          h6("Indicator approaches can be explored using the Indicator module of the Stock Assessment Learning Tool")
+        )
       )
     )
   ),
@@ -204,13 +215,13 @@ ui <- page_sidebar(
     tags$style(HTML("
       .choice-button {
         margin: 5px;
-        width: 100%;
+        width: 25%;
         text-align: left;
       }
       .path-item {
         padding: 2px 8px;
         margin: 2px;
-        background-color: #e3f2fd;
+        background-color: #6aa84f;
         border-radius: 15px;
         display: inline-block;
         font-size: 0.9em;
@@ -227,24 +238,61 @@ server <- function(input, output, session) {
   # Initialize useShinyjs
   useShinyjs()
   
-  output$SACImage <- renderImage({
+  output$SACImage_init <- renderImage({
+    
     list(
       src = file.path(getwd(),"SAC_pics/SAC.jpg"),
       alt = "SAC decision tree",
       width = "50%",
-      height = "auto",
+      height = "100%",
       style = "display: block; margin-left: auto; margin-right: auto;"
-    )  }, deleteFile = FALSE)
+    )
+  }, deleteFile = FALSE)
+  
+  output$SACImage <- renderImage({
+
+      list.out<-list(
+        src = file.path(getwd(),"SAC_pics/SAC.jpg"),
+        alt = "SAC decision tree",
+        width = "50%",
+        height = "100%",
+        style = "display: block; margin-left: auto; margin-right: auto;"
+      )
+  
+    if(current_node()=="root"){list.out$src = src = file.path(getwd(),"SAC_pics/SAC.jpg")}
+    if(current_node()=="scale_node"){list.out$src = file.path(getwd(),"SAC_pics/Scale_bio.jpg")}
+    if(current_node()=="scale_bio_node"){list.out$src = file.path(getwd(),"SAC_pics/Scale_bioYES_Index.jpg")}
+    if(current_node()=="scale_nobio_node"){list.out$src = file.path(getwd(),"SAC_pics/Scale_bioNO_Index.jpg")}
+    if(current_node()=="status_node"){list.out$src = file.path(getwd(),"SAC_pics/Status_bio.jpg")}
+    if(current_node()=="status_bio_node"){list.out$src = file.path(getwd(),"SAC_pics/Status_bioYES_Index.jpg")}
+    if(current_node()=="status_nobio_node"){list.out$src = file.path(getwd(),"SAC_pics/Status_bioNO_Index.jpg")}
+    
+    list.out
+    
+    }, deleteFile = FALSE)
   
   output$SACImage_out <- renderImage({
-    list(
-      #browser()
-      src = file.path(getwd(),"SAC_pics/Status.jpg"),
+
+    list.end<-list(
+      src = file.path(getwd(),"SAC_pics/SAC.jpg"),
       alt = "SAC decision tree out",
       width = "50%",
-      height = "auto",
+      height = "100%",
       style = "display: block; margin-left: auto; margin-right: auto;"
-    )  }, deleteFile = FALSE)
+    )
+
+    if(current_node()=="scale_bio_index_node"){list.end$src = file.path(getwd(),"SAC_pics/Scale_bioYES_IndexYES_IA.jpg")}
+    if(current_node()=="scale_bio_noindex_node"){list.end$src = file.path(getwd(),"SAC_pics/Scale_bioYES_IndexNO_CL.jpg")}
+    if(current_node()=="scale_nobio_index_node"){list.end$src = file.path(getwd(),"SAC_pics/Scale_bioNO_IndexYES_SP.jpg")}
+    if(current_node()=="scale_nobio_noindex_node"){list.end$src = file.path(getwd(),"SAC_pics/Scale_bioNO_IndexNO_CtO.jpg")}
+    if(current_node()=="status_bio_index_node"){list.end$src = file.path(getwd(),"SAC_pics/Status_bioYES_IndexYES_MInd.jpg")}
+    if(current_node()=="status_bio_noindex_node"){list.end$src = file.path(getwd(),"SAC_pics/Status_bioYES_IndexNO_LAO.jpg")}
+    if(current_node()=="status_nobio_index_node"){list.end$src =  file.path(getwd(),"SAC_pics/Status_bioNO_IndexYES_Indicator.jpg")}
+    if(current_node()=="status_nobio_noindex_node"){list.end$src = file.path(getwd(),"SAC_pics/Status_bioNO_IndexNO_RA.jpg")}
+    
+    list.end
+
+    }, deleteFile = FALSE)
   
     # Track if we're at root
   output$at_root <- reactive({
@@ -294,6 +342,8 @@ server <- function(input, output, session) {
         actionButton(
           inputId = paste0("choice_", gsub("[^A-Za-z0-9]", "_", choice_name)),
           label = choice_name,
+          width = "25%",
+          class = "text-center",
           class = "btn-outline-info choice-button",
           onclick = paste0("Shiny.setInputValue('selected_choice', '", choice_name, "');")
         )
@@ -335,6 +385,8 @@ server <- function(input, output, session) {
       # Update history and move to next node
       node_history(c(node_history(), current))
       current_node(next_node)
+      # print(current_node)
+      # print(node_history)
     }
   })
   

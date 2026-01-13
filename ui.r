@@ -284,6 +284,31 @@ div(
             style = "text-decoration: none; color: inherit;"
           )
         ),
+
+##############################
+# Stock Assessment Continuum #
+##############################
+    div(
+      class = "col-md-4",
+      actionButton(
+        "goto_SAC",
+        label = div(
+          card(
+            card_header(
+              div(
+                tags$img(src = "SAC.jpg", height = "100px", width = "300px"),
+                h3("Stock Assessment Continuum", class = "card-title")
+              )
+            ),
+            card_body(
+              p("Navigate through the Stock Assessment Continuum by seeing stock assessments option based on available data types.")
+            )
+          )
+        ),
+        class = "btn btn-link p-0 w-100",
+        style = "text-decoration: none; color: inherit;"
+      )
+    ),
         
 
       )
@@ -843,7 +868,7 @@ nav_panel(
 
 
 ########################
-# Reference points tab #
+# Indicators tab #
 ########################
 nav_panel(
   title = "Indicators",
@@ -1213,7 +1238,7 @@ nav_panel(
                   min = 0.01, 
                   max = 1, 
                   step = 0.01),
-      
+      h6("For more advanced explorations and creations of harvest control rules, please see ",tags$a(href = "https://bridgeenvironment.shinyapps.io/hcr_design_tool/", "The Harvest Control Design Tool", target = "_blank")), 
       # Control rule shape
       #   h5("Control Rule Shape"),
       #   selectInput("rule_type", 

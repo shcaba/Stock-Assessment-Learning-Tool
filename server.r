@@ -2332,9 +2332,9 @@ observeEvent(input$goto_uncertainty, {
         "Limit (Overfished) Reference Point: ", input$b_limit, "\n",
         "Target Reference Point: ", input$b_target, "\n\n",
         "Management Zones:\n",
-        "• RED (0 - ", input$b_limit, "): Overfished - rebuilding plan\n",
-        "• YELLOW (", input$b_limit, " - ", input$b_target, "): Precautionary - Reduced fishing\n",
-        "• GREEN (", input$b_target, "+): Healthy - Full fishing allowed"
+        "• RED (0 - ", input$b_limit, "): Overfished - rebuilding plan.\n",
+        "• YELLOW (", input$b_limit, " - ", input$b_target, "): Precautionary - fishing mortality < FMSY. Note that fishing mortality is no longer constant.\n",
+        "• GREEN (", input$b_target, "+): Healthy - Full fishing allowed."
       )
     })  
   })

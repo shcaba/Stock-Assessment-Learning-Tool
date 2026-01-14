@@ -8,6 +8,7 @@ library(ggplot2)
 library(r4ss)
 library(shinyFiles)
 library(shinyWidgets)
+library(shinyjs)
 
 ui <- page_navbar(
   title = "Stock Assessment Learning Tool",
@@ -301,7 +302,7 @@ div(
               )
             ),
             card_body(
-              p("Navigate through the Stock Assessment Continuum by seeing stock assessments option based on available data types.")
+              p("Navigate through the Stock Assessment Continuum by seeing stock assessment options based on data availability.")
             )
           )
         ),
@@ -867,9 +868,9 @@ nav_panel(
   ),
 
 
-########################
+##################
 # Indicators tab #
-########################
+##################
 nav_panel(
   title = "Indicators",
   value = "indicators",
@@ -1391,6 +1392,137 @@ nav_panel(
           #plotlyOutput("TotalBPlot")
         )
       )
+    )
+  ),
+
+
+###########
+# SAC tab #
+###########
+nav_panel(
+  title = "SAC",
+  value = "sac",
+  
+  fluidPage(
+    # Define the decision tree structure
+
+    
+    page_sidebar(
+      title = "Navigating through the Stock Assessment Continuum",
+      
+      sidebar = div(
+        # Reset button
+        actionButton("reset", "Begin Again", 
+                     class = "btn-outline-primary mb-3", 
+                     style = "width: 50%;"),
+        
+        # Path display
+        conditionalPanel(
+          condition = "output.show_path",
+          card(
+            card_header("Your Data Pathway"),
+            card_body(
+              htmlOutput("path_display")
+            )
+          )
+        )
+      ),
+      
+      # Main content area
+      div(
+        id = "main_content",
+        
+        # Welcome message
+        conditionalPanel(
+          condition = "output.at_root",
+          card(
+            card_header(
+              h1("Welcome to the Stock Assessment Continuum navigator", class = "text-center")
+            ),
+            card_body(
+              p("This interactive decision tree will help you navigate through different stock assessment options.", 
+                class = "text-center"),
+              p("Click 'Start' to traverse the Stock Assessment Continuum (SAC).", class = "text-center"),
+              div(
+                actionButton("start", "Start SAC Decision Tree", 
+                             class = "btn-outline-primary mb-3"),
+                #class = "btn-primary btn-lg"),
+                class = "text-center"
+              ),
+              imageOutput("SACImage_init")
+            )
+          )
+        ),
+        
+        # Decision node display
+        conditionalPanel(
+          condition = "!output.at_root && !output.at_outcome",
+          card(
+            card_header(
+              h4(textOutput("question_text"))
+            ),
+            card_body(
+              uiOutput("choices_ui"),
+              actionButton("go_back", "Go Back", 
+                           width="10%",
+                           #                       style='padding:4px; font-size:100%'),
+                           class = "text-center",
+                           class = "btn-outline-secondary"),
+              #                       class = "btn-outline-secondary"),
+              align = "center",
+              imageOutput("SACImage")
+            ),
+            
+          )
+        ),
+        
+        # Outcome display
+        conditionalPanel(
+          condition = "output.at_outcome",
+          card(
+            card_header(
+              h3("Recommendation", class = "text-success")
+            ),
+            card_body(
+              div(
+                h5(textOutput("outcome_text")),
+                br(),
+                actionButton("start_over", "Begin Again", 
+                             class = "btn-primary"),
+                actionButton("go_back_outcome", "Go Back", 
+                             class = "btn-outline-secondary"),
+                imageOutput("SACImage_out")
+              )
+            ),
+            card_body(
+              h6("All scale- and model-based options, as well as the length and/or age only models, can be done in ",tags$a(href = "https://github.com/shcaba/SS-DL-tool", "The Stock Assessment Continuum Tool", target = "_blank")),
+              h6(tags$a(href = "https://connect.fisheries.noaa.gov/psa/", "The Productivity-Susceptibility Analysis", target = "_blank")," is a form of Risk Analysis that can be used when all other data are unavailable."),
+              h6("Model-free indicator approaches can be explored using the Indicator module of the Stock Assessment Learning Tool")
+            )
+          )
+        )
+      ),
+      
+      # Add custom CSS
+      tags$head(
+        tags$style(HTML("
+      .choice-button {
+        margin: 5px;
+        width: 25%;
+        text-align: left;
+      }
+      .path-item {
+        padding: 2px 8px;
+        margin: 2px;
+        background-color: #6aa84f;
+        border-radius: 15px;
+        display: inline-block;
+        font-size: 0.9em;
+      }
+    "))
+      )
+    )
+
     )
   ),
 

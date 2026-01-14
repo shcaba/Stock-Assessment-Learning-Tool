@@ -202,9 +202,9 @@ ui <- page_sidebar(
           )
                   ),
         card_body(
-          h6("All scale-based options, as well as the length and/or age only models, can be done in ",tags$a(href = "https://github.com/shcaba/SS-DL-tool", "The Stock Assessment Continuum Tool", target = "_blank")),
+          h6("All scale- and model-based options, as well as the length and/or age only models, can be done in ",tags$a(href = "https://github.com/shcaba/SS-DL-tool", "The Stock Assessment Continuum Tool", target = "_blank")),
           h6(tags$a(href = "https://connect.fisheries.noaa.gov/psa/", "The Productivity-Susceptibility Analysis", target = "_blank")," is a form of Risk Analysis that can be used when all other data are unavailable."),
-          h6("Indicator approaches can be explored using the Indicator module of the Stock Assessment Learning Tool")
+          h6("Model-free indicator approaches can be explored using the Indicator module of the Stock Assessment Learning Tool")
         )
       )
     )

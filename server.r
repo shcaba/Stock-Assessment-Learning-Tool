@@ -921,7 +921,7 @@ observeEvent(input$goto_uncertainty, {
     # Create summary table
     stats <- data.frame(
       Metric = c("True Value", "Sample Mean", "% Estimated Bias", 
-                 "Sample SD", "Theoretical SD"),
+                 "True SD", "Sample SD"),
       Value = c(
         round(true_value, 2),
         round(sample_mean, 2),

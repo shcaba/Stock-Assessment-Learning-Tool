@@ -1819,7 +1819,7 @@ observeEvent(input$goto_uncertainty, {
   observeEvent(input$goto_indicators, {
     nav_select("navbar", "indicators")
     
-  stock.data <- readRDS("stock_data.RDS")
+  stock.data <- readRDS("stock_data.rds")
   data.colors<-viridis(3)
   
   data.sub<-reactive({
@@ -2505,8 +2505,10 @@ observeEvent(input$goto_uncertainty, {
     #load model summaries
     observeEvent(req(input$run_SSP_comps),{
       print(c(SSP_choices.in.status,SSP_choices.in.scale,SSP_choices.in.prod,SSP_choices.in.status_prod,SSP_choices.in.scale_prod))
-      load(paste0(getwd(),"/mod_summary.RDS"))  
-      load(paste0(getwd(),"/Catches.RDS"))
+#      load(paste0(getwd(),"/mod_summary.RDS"))  
+#      load(paste0(getwd(),"/Catches.RDS"))
+      load("mod_summary.rds")  
+      load("Catches.rds")
       
       colnames(ssp_summary$SpawnBio)[1:(length(colnames(ssp_summary$SpawnBio))-2)]<-colnames(ssp_summary$Bratio)[1:(length(colnames(ssp_summary$Bratio))-2)]<-c("Status 40%",SSP_choices)
       mod_indices<-c(2:ssp_summary$n)[SSP_choices%in%input$myPicker_SSP_grouped]

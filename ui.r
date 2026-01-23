@@ -1276,9 +1276,9 @@ nav_panel(
 ),
 
 
-###########
-# SSP tab #
-###########
+######################################
+# Scale, Status and Productivity tab #
+######################################
 nav_panel(
   title = "SSP",
   value = "SSP",
@@ -1309,7 +1309,7 @@ nav_panel(
       ),
       
       h4("The combination of stock status (i.e., how much the population has declined) and size (i.e., how many are there) along with the productivity of the stock determines how much can be caught, and are used in the harvest control rules for setting catch limits."),
-      h4("Understanding why stock status and scale may change across assessments, and what causes there change (e.g., stock productivity), is critical for developing fisheries management"),
+      h4("Understanding why stock status and scale may change across assessments, and what causes them to change (e.g., stock productivity), is critical for developing fisheries management"),
       br(),
       h4("This tool allows you to explore these concepts by picking different model configurations."),
       h4("All models are compared to a stock that is at 40% of unfished in the final year and has a certain catch time series and life history."),

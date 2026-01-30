@@ -762,7 +762,7 @@ nav_panel(
 # Bio comps tab #
 #################
 nav_panel(
-  title = "Biological compositions: ",
+  title = "Age and Length",
   value = "biocomps",
   page_sidebar(
     title = "Fish Population Structure: Change life history parameters and selectivity to see how they influences fished age and length compositions compared to unfished populations",

@@ -1744,7 +1744,7 @@ observeEvent(input$goto_uncertainty, {
   
   
   # Stock status table
-  output$stock_status <- renderTable({
+  output$stock_status_tab <- renderTable({
     status <- stock_status()
     mean_age_lt<- mean_bio_comp()
     

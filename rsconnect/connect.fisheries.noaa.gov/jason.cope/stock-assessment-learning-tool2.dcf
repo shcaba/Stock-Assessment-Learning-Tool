@@ -1,0 +1,13 @@
+name: stock-assessment-learning-tool2
+title: Stock-Assessment-Learning-Tool
+username: jason.cope
+account: jason.cope
+server: connect.fisheries.noaa.gov
+hostUrl: https://connect.fisheries.noaa.gov/__api__
+appId: 558
+bundleId: 3849
+url: https://connect.fisheries.noaa.gov/SALT/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Development files

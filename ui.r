@@ -840,7 +840,7 @@ nav_panel(
       ),
       card(
         card_header("Stock Status"),
-        tableOutput("stock_status"),
+        tableOutput("stock_status_tab"),
         textOutput("stock_interpretation")
       )
       

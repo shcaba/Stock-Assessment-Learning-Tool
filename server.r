@@ -170,7 +170,10 @@ server <- function(input, output, session) {
 ####################
 # Life history tab #
 ####################
+  nav_hide("navbar", "LHP")
+  
   observeEvent(input$goto_LHP, {
+    nav_show("navbar", "LHP")
     nav_select("navbar", "LHP")
     # Reactive data generation
     plot_data <- reactive({
@@ -280,7 +283,9 @@ server <- function(input, output, session) {
 ###############
 # Selectivity #
 ###############
+    nav_hide("navbar", "selectivity")
     observeEvent(input$goto_selectivity, {
+    nav_show("navbar", "selectivity")
     nav_select("navbar", "selectivity")
       
       # Reactive values to store selectivity data
@@ -514,15 +519,15 @@ server <- function(input, output, session) {
           write.csv(values$selectivity_data, file, row.names = FALSE)
         }
       )
-        })
+    })
 
   ################    
   # Productivity #
   ################
-  
+  nav_hide("navbar", "productivity")
   observeEvent(input$goto_prod_eqyield, {
+    nav_show("navbar", "productivity")
     nav_select("navbar", "productivity")
-
     output$maturity.in<-renderUI({
       fluidRow(
         column(width = 6, numericInput("A50",
@@ -779,10 +784,10 @@ server <- function(input, output, session) {
 ###############
 # Uncertainty #
 ###############
-  
+  nav_hide("navbar", "uncertainty")
 observeEvent(input$goto_uncertainty, {
+  nav_show("navbar", "uncertainty")
   nav_select("navbar", "uncertainty")
-    
   true_value<-100
   
   # Reactive values to store data
@@ -1046,7 +1051,9 @@ observeEvent(input$goto_uncertainty, {
 ######################
 # Sampling abundance #
 ######################
+  nav_hide("navbar", "abundance")
   observeEvent(input$goto_abundance, {
+    nav_show("navbar", "abundance")
     nav_select("navbar", "abundance")
     set.seed(runif(1,1,2000000))  # For reproducible results
     
@@ -1363,7 +1370,10 @@ observeEvent(input$goto_uncertainty, {
 ###########################
 # Biological compositions #
 ###########################
+    nav_hide("navbar", "biocomps")
+  
   observeEvent(input$goto_biocomps, {
+    nav_show("navbar", "biocomps")
     nav_select("navbar", "biocomps")
     
   # Reactive validation and warnings
@@ -1815,8 +1825,10 @@ observeEvent(input$goto_uncertainty, {
   ##############  
   # Indicators #
   ##############
+    nav_hide("navbar", "indicators")
   
   observeEvent(input$goto_indicators, {
+    nav_show("navbar", "indicators")
     nav_select("navbar", "indicators")
     
   stock.data <- readRDS("stock_data.rds")
@@ -2147,7 +2159,10 @@ observeEvent(input$goto_uncertainty, {
   ######################################  
   # Reference Points and Control Rules #
   ######################################
+    nav_hide("navbar", "refpts")
+
   observeEvent(input$goto_refpts, {
+    nav_show("navbar", "refpts")
     nav_select("navbar", "refpts")
     # Reactive function to calculate control rule
     control_rule_data <- reactive({
@@ -2347,7 +2362,10 @@ observeEvent(input$goto_uncertainty, {
 ###############################
 # Scale, Status, Productivity #
 ###############################
+    nav_hide("navbar", "SSP")
+
   observeEvent(input$goto_ssp, {
+    nav_show("navbar", "SSP")
     nav_select("navbar", "SSP")
     #Folder names
     ssp.folder.names<-c("Status20%",
@@ -2631,9 +2649,12 @@ observeEvent(input$goto_uncertainty, {
   ####################  
   # Baseline Shifter #
   ####################  
+    nav_hide("navbar", "baseline")
 
   observeEvent(input$goto_baseline, {
+    nav_show("navbar", "baseline")
     nav_select("navbar", "baseline")
+
     #spp.out<-SS_output(paste0(getwd(),"/Spp_Reports/REBS_2025"))
     volumes <- getVolumes()()
     
@@ -2781,7 +2802,10 @@ observeEvent(input$goto_uncertainty, {
   #####################  
   # SAC decision tree #
   #####################  
+    nav_hide("navbar", "sac")
+
   observeEvent(input$goto_SAC, {
+    nav_show("navbar", "sac")
     nav_select("navbar", "sac")
     
   decision_tree <- list(

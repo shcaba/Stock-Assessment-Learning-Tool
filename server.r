@@ -374,6 +374,7 @@ server <- function(input, output, session) {
   # Selectivity #
   ###############
   nav_hide("navbar", "selectivity")
+
   observeEvent(input$goto_selectivity, {
     nav_show("navbar", "selectivity")
     nav_select("navbar", "selectivity")
@@ -2043,6 +2044,33 @@ server <- function(input, output, session) {
       mean_bio_comp
     })
 
+    sel_mean_bio_comp <- reactive({
+      pops <- populations()
+      #Calculate sampled unfished based on selectivity of fishery
+      sel_mean_lt_unfished <- sum(
+        pops$unfished$length * pops$unfished$numbers * pops$fished$selectivity
+      ) /
+        sum(pops$unfished$numbers * pops$fished$selectivity)
+      sel_mean_lt_fished <- sum(
+        pops$fished$length * pops$fished$numbers * pops$fished$selectivity
+      ) /
+        sum(pops$fished$numbers * pops$fished$selectivity)
+      sel_mean_lt <- sel_mean_lt_fished / sel_mean_lt_unfished
+
+      sel_mean_age_unfished <- sum(
+        pops$unfished$age * pops$unfished$numbers * pops$fished$selectivity
+      ) /
+        sum(pops$unfished$numbers * pops$fished$selectivity)
+      sel_mean_age_fished <- sum(
+        pops$fished$age * pops$fished$numbers * pops$fished$selectivity
+      ) /
+        sum(pops$fished$numbers * pops$fished$selectivity)
+      sel_mean_age <- sel_mean_age_fished / sel_mean_age_unfished
+
+      sel_mean_bio_comp <- c(sel_mean_age, sel_mean_lt)
+      sel_mean_bio_comp
+    })
+
     # Age structure plot
     output$age_plot <- renderPlotly({
       pops <- populations()
@@ -2657,13 +2685,16 @@ server <- function(input, output, session) {
       {
         status <- stock_status()
         mean_age_lt <- mean_bio_comp()
+        sel_mean_age_lt <- sel_mean_bio_comp()
 
         data.frame(
           Metric = c(
             "Spawning Biomass Ratio (SSB/SSB0)",
             "Total Biomass Ratio (B/B0)",
             "Mean Length Ratio (fished/unfished)",
-            "Mean Age Ratio (fished/unfished)"
+            "Mean Age Ratio (fished/unfished)",
+            "Sampled Mean Length Ratio (fished/unfished)",
+            "Sampled Mean Age Ratio (fished/unfished)"
             #"Spawning Biomass (Fished)",
             #"Spawning Biomass (Unfished)",
             #"Total Biomass (Fished)",
@@ -2673,7 +2704,9 @@ server <- function(input, output, session) {
             round(status$SSB_ratio, 3),
             round(status$B_ratio, 3),
             mean_age_lt[2],
-            mean_age_lt[1]
+            mean_age_lt[1],
+            sel_mean_age_lt[2],
+            sel_mean_age_lt[1]
             #round(status$SSB_fished, 0),
             #round(status$SSB_unfished, 0),
             #round(status$B_fished, 0),
@@ -2856,7 +2889,7 @@ server <- function(input, output, session) {
     output$data.indicator <- renderUI({
       checkboxGroupButtons(
         inputId = "data.id",
-        label = "Which data to consider: ",
+        label = "Which data to plot: ",
         choices = c("Catch", "Index", "Mean Length"),
         size = "sm"
       )
@@ -3105,41 +3138,86 @@ server <- function(input, output, session) {
       striped = TRUE
     )
 
+    summary_stats_tab <- reactive({
+      CR.in_Ct <- CR_calc_Ct()
+      CR.in_I <- CR_calc_Ind()
+      CR.in_Lt <- CR_calc_Lt()
+      data.frame(
+        Statistic = c("Ct I", "Ct RP", "Control Rule", "CR value"),
+        Catch_CR = c(
+          input$Ct_I_in,
+          input$Ct_RP_in,
+          input$ct_equation_type,
+          round(CR.in_Ct, 3)
+        ),
+        Index_CR = c(
+          input$I_I_in,
+          input$I_RP_in,
+          input$ind_equation_type,
+          round(CR.in_I, 3)
+        ),
+        Length_CR = c(
+          input$Lt_I_in,
+          input$Lt_RP_in,
+          input$lt_equation_type,
+          round(CR.in_Lt, 3)
+        )
+      )
+    })
+
     output$summary_stats <- renderTable(
       {
-        CR.in_Ct <- CR_calc_Ct()
-        CR.in_I <- CR_calc_Ind()
-        CR.in_Lt <- CR_calc_Lt()
-        data.frame(
-          Statistic = c("Ct I", "Ct RP", "Control Rule", "CR value"),
-          Catch_CR = c(
-            input$Ct_I_in,
-            input$Ct_RP_in,
-            input$ct_equation_type,
-            round(CR.in_Ct, 3)
-          ),
-          Index_CR = c(
-            input$I_I_in,
-            input$I_RP_in,
-            input$ind_equation_type,
-            round(CR.in_I, 3)
-          ),
-          Length_CR = c(
-            input$Lt_I_in,
-            input$Lt_RP_in,
-            input$lt_equation_type,
-            round(CR.in_Lt, 3)
-          )
-          # Length_CR = c(
-          #   paste0("x"),
-          #   paste0("x"),
-          #   paste0("x"),
-          #   paste0("x")
-          # )
-        )
+        summary_stats_tab()
+        # CR.in_Ct <- CR_calc_Ct()
+        # CR.in_I <- CR_calc_Ind()
+        # CR.in_Lt <- CR_calc_Lt()
+        # data.frame(
+        #   Statistic = c("Ct I", "Ct RP", "Control Rule", "CR value"),
+        #   Catch_CR = c(
+        #     input$Ct_I_in,
+        #     input$Ct_RP_in,
+        #     input$ct_equation_type,
+        #     round(CR.in_Ct, 3)
+        #   ),
+        #   Index_CR = c(
+        #     input$I_I_in,
+        #     input$I_RP_in,
+        #     input$ind_equation_type,
+        #     round(CR.in_I, 3)
+        #   ),
+        #   Length_CR = c(
+        #     input$Lt_I_in,
+        #     input$Lt_RP_in,
+        #     input$lt_equation_type,
+        #     round(CR.in_Lt, 3)
+        #   )
+        #   # Length_CR = c(
+        #   #   paste0("x"),
+        #   #   paste0("x"),
+        #   #   paste0("x"),
+        #   #   paste0("x")
+        #   # )
+        # )
       },
       striped = TRUE
     )
+
+    observeEvent(input$copy_btn, {
+      # Convert dataframe to tab-separated text
+      table_text <- paste(
+        paste(names(summary_stats_tab()), collapse = "\t"),
+        paste(
+          apply(summary_stats_tab(), 1, function(row) {
+            paste(row, collapse = "\t")
+          }),
+          collapse = "\n"
+        ),
+        sep = "\n"
+      )
+
+      # Use JavaScript to copy to clipboard
+      session$sendCustomMessage("copy_to_clipboard", table_text)
+    })
   })
 
   ######################################

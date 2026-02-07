@@ -1022,7 +1022,7 @@ ui <- page_navbar(
     title = "Age and Length",
     value = "biocomps",
     page_sidebar(
-      title = "Fish Population Structure: Change life history parameters and selectivity to see how they influences fished age and length compositions compared to unfished populations",
+      title = "Fish Biological Structure: Change life history parameters and selectivity to see how they influences fished age and length compositions compared to unfished populations",
 
       sidebar = sidebar(
         width = 350,
@@ -1483,12 +1483,12 @@ ui <- page_navbar(
         ),
 
         # Calculate button
-        actionButton(
-          "calculate_cr",
-          "Run Control Rule(s)",
-          class = "btn-primary",
-          style = "width: 100%; margin-top: 10px;"
-        )
+        # actionButton(
+        #   "calculate_cr",
+        #   "Run Control Rule(s)",
+        #   class = "btn-primary",
+        #   style = "width: 100%; margin-top: 10px;"
+        # )
       ),
 
       # Main panel with results
@@ -1506,7 +1506,7 @@ ui <- page_navbar(
               "MM = Management Metric. Examples are catch limits, effort, etc."
             ),
             tags$li("y = current year"),
-            tags$li(paste0("z = years before current year", em("y"))),
+            tags$li("z = years before current year", tags$i("y")),
             tags$li("Modifer = "),
             tags$ol(
               tags$li(
@@ -1582,9 +1582,10 @@ ui <- page_navbar(
               ),
               card(
                 card_header("Summary Statistics"),
-                tableOutput("summary_stats")
+                tableOutput("summary_stats"),
+                actionButton("copy_btn", "Copy Table", class = "btn-primary")
               ),
-              #        col_widths = c(4,8)
+              #col_widths = c(4, 8)
             )
           ),
           col_widths = c(12, 12, 12, 12)

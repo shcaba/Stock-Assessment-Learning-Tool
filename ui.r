@@ -1179,6 +1179,12 @@ ui <- page_navbar(
           class = "btn-outline-secondary",
           style = "color: #fff; background-color: #eb860c; border-color: #eb860c"
         ),
+        downloadButton(
+          "download_pops",
+          "Download population outputs",
+          class = "btn-outline-secondary",
+          style = "color: #fff; background-color: #347d48; border-color: #347d48"
+        ),
 
         card(
           card_header("Reference Points"),

@@ -19,7 +19,8 @@ von_bertalanffy <- function(age, Linf, K, t0 = 0) {
 
 calc_selectivity <- function(lengths, L50_asc, L95_asc, peak_length, desc_sd) {
   # Ascending limb parameters (logistic)
-  slope_asc <- log(19) / (L95_asc - L50_asc) # 19 = ln(0.95/0.05)
+  #slope_asc <- 1/(1+exp(-log(19)*((lengths-L50_asc)/(L95_asc - L50_asc))))
+  #  log(19) / (L95_asc - L50_asc) # 19 = ln(0.95/0.05)
 
   # Calculate selectivity for each length
   selectivity <- numeric(length(lengths))
@@ -28,7 +29,8 @@ calc_selectivity <- function(lengths, L50_asc, L95_asc, peak_length, desc_sd) {
     L <- lengths[i]
 
     # Ascending limb (logistic)
-    sel_asc <- 1 / (1 + exp(-slope_asc * (L - L50_asc)))
+    sel_asc <- 1 / (1 + exp(-log(19) * ((L - L50_asc) / (L95_asc - L50_asc))))
+    #  1 / (1 + exp(-slope_asc * (L - L50_asc)))
 
     # Descending limb (normal/Gaussian curve)
     # Normal distribution with peak at peak_length and standard deviation desc_sd
@@ -102,7 +104,10 @@ calculate_stock_status <- function(fished_pop, unfished_pop, L50, L95) {
   #  fished_pop$mature <- ifelse(fished_pop$length >= maturity_length, 1, 0)
   #  unfished_pop$mature <- ifelse(unfished_pop$length >= maturity_length, 1, 0)
   fished_pop$mature <- unfished_pop$mature <- 1 /
-    (1 + exp(-log(19) * (unfished_pop$length - L50) / (L95 - L50)))
+    (1 + exp(-log(19) * ((unfished_pop$length - L50) / (L95 - L50))))
+
+  #1 /
+  #(1 + exp(-log(19) * (unfished_pop$length - L50) / (L95 - L50)))
 
   # Calculate spawning biomass
   SSB_fished <- sum(
@@ -140,8 +145,10 @@ beverton_holt_relative <- function(S_rel, h) {
 
 # Calculate selectivity-at-age
 calculate_selectivity <- function(age, a50, a95) {
-  slope <- log(19) / (a95 - a50) # Slope for logistic selectivity
-  selectivity <- 1 / (1 + exp(-slope * (age - a50)))
+  #slope <- log(19) / (a95 - a50) # Slope for logistic selectivity
+  #selectivity <- 1 / (1 + exp(-slope * (age - a50)))
+  selectivity <- 1 /
+    (1 + exp(-log(19) * ((age - a50) / (a95 - a50))))
   return(selectivity)
 }
 
@@ -1959,6 +1966,13 @@ server <- function(input, output, session) {
         desc_sd = input$desc_sd
       )
 
+      maturity <- 1 /
+        (1 +
+          exp(
+            -log(19) * ((unfished$length - input$L50) / (input$L95 - input$L50))
+          ))
+      unfished$maturity <- fished$maturity <- maturity
+
       list(unfished = unfished, fished = fished)
     })
 
@@ -2047,6 +2061,7 @@ server <- function(input, output, session) {
     sel_mean_bio_comp <- reactive({
       pops <- populations()
       #Calculate sampled unfished based on selectivity of fishery
+
       sel_mean_lt_unfished <- sum(
         pops$unfished$length * pops$unfished$numbers * pops$fished$selectivity
       ) /
@@ -2071,6 +2086,16 @@ server <- function(input, output, session) {
       sel_mean_bio_comp
     })
 
+    # Download population outputs
+    output$download_pops <- downloadHandler(
+      filename = function() {
+        paste0("pop_out_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        req(populations())
+        write.csv(populations(), file, row.names = TRUE)
+      }
+    )
     # Age structure plot
     output$age_plot <- renderPlotly({
       pops <- populations()
@@ -2758,7 +2783,7 @@ server <- function(input, output, session) {
     #Capture index measures for chosen sampling
     observeEvent(input$save_results, {
       status <- stock_status()
-      mean_age_lt <- mean_bio_comp()
+      mean_age_lt <- sel_mean_bio_comp()
 
       results_cap <- rbind(
         results_out(),

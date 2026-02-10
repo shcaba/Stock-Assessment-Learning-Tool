@@ -1247,12 +1247,12 @@ ui <- page_navbar(
       layout_columns(
         col_widths = c(4, 4, 4),
         card(
-          card_header("Sampled age compositions"),
+          card_header("Sampled age compositions: Fished vs Unfished"),
           plotlyOutput("age_sel_plot")
         ),
 
         card(
-          card_header("Sampled length compositions"),
+          card_header("Sampled length compositions: Fished vs Unfished"),
           plotlyOutput("length_sel_plot")
         ),
 

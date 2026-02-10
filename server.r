@@ -861,8 +861,6 @@ server <- function(input, output, session) {
       # Weight-at-age (assume linear growth for simplicity)
       weight_at_age <- ages * 0.1 # kg
 
-      #browser()
-
       # Range of fishing mortality rates
       F_rates <- c(
         seq(0, 0.5, by = 0.0001),
@@ -1856,7 +1854,6 @@ server <- function(input, output, session) {
     #  })
 
     output$index_plot <- renderPlotly({
-      #browser()
       plotdata <- pop_samples()
       if (any(plotdata > 0)) {
         plotdata <- plotdata[-1, ]
@@ -2060,8 +2057,8 @@ server <- function(input, output, session) {
 
     sel_mean_bio_comp <- reactive({
       pops <- populations()
-      #Calculate sampled unfished based on selectivity of fishery
 
+      #Calculate sampled unfished based on selectivity of fishery
       sel_mean_lt_unfished <- sum(
         pops$unfished$length * pops$unfished$numbers * pops$fished$selectivity
       ) /
@@ -2096,13 +2093,11 @@ server <- function(input, output, session) {
         write.csv(populations(), file, row.names = TRUE)
       }
     )
+
     # Age structure plot
     output$age_plot <- renderPlotly({
       pops <- populations()
-      #      plot_data <- rbind(
-      #      data.frame(pops$unfished, population = "Unfished"),
-      #      data.frame(pops$fished, population = "Fished")
-      #    )
+
       plot_data_fished <- do.call(
         c,
         mapply(
@@ -2149,7 +2144,12 @@ server <- function(input, output, session) {
           title = "Total Age Distribution: Fished vs Unfished"
         ) +
         theme_minimal() +
-        theme(legend.position = "bottom")
+        theme(legend.position = "bottom") +
+        geom_vline(
+          xintercept = 5.4 / input$M_bc,
+          linetype = "dashed",
+          col = c("purple")
+        )
 
       ggplotly(p, tooltip = c("x", "y", "colour"))
     })
@@ -2157,11 +2157,6 @@ server <- function(input, output, session) {
     # Selected Age compositions
     output$age_sel_plot <- renderPlotly({
       pops <- populations()
-
-      #plot_data <- rbind(
-      #  data.frame(age=pops$unfished$age,prop=(pops$unfished$numbers*pops$fished$selectivity)/sum(pops$unfished$numbers*pops$fished$selectivity), population = "Unfished"),
-      #  data.frame(age=pops$fished$age,prop=(pops$fished$numbers*pops$fished$selectivity)/sum(pops$fished$numbers*pops$fished$selectivity), population = "Fished")
-      #)
 
       plot_data_fished <- do.call(
         c,
@@ -2199,6 +2194,29 @@ server <- function(input, output, session) {
       )
       plot_data <- rbind(plot_data_fish_df, plot_data_unfish_df)
 
+      mean.age.fish <- mean(plot_data_fish_df$age)
+      mean.age.unfish <- mean(plot_data_unfish_df$age)
+
+      dens_fished <- density(plot_data_fish_df$age, adjust = 1)
+
+      mean_density_fished <- approx(
+        dens_fished$x,
+        dens_fished$y,
+        xout = mean.age.fish
+      )$y
+
+      dens_unfished <- density(
+        plot_data_unfish_df$age,
+        adjust = 1
+      )
+      mean_density_unfished <- approx(
+        dens_unfished$x,
+        dens_unfished$y,
+        xout = mean.age.unfish
+      )$y
+
+      max.d <- max(c(dens_fished$y, dens_unfished$y))
+
       p <- ggplot(plot_data, aes(x = age, color = population)) +
         geom_density(alpha = 0.5, size = 1, show.legend = FALSE) +
         #scale_fill_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
@@ -2215,7 +2233,57 @@ server <- function(input, output, session) {
           title = "Selected Age Distribution: Fished vs Unfished"
         ) +
         theme_minimal() +
-        theme(legend.position = "bottom")
+        theme(legend.position = "bottom") +
+        geom_vline(
+          xintercept = 5.4 / input$M_bc,
+          linetype = "dashed",
+          col = c("purple")
+        ) +
+        annotate(
+          "text",
+          x = 5.4 / input$M_bc,
+          y = max.d + max.d * 0.1,
+          label = "Amax",
+          col = "purple",
+          size = 2.5
+        ) +
+        geom_point(
+          aes(
+            x = mean.age.fish,
+            y = mean_density_fished
+          ),
+          color = viridis(1, option = "plasma"),
+          size = 2,
+          shape = 19
+        ) +
+        geom_point(
+          aes(
+            x = mean.age.unfish,
+            y = mean_density_unfished
+          ),
+          color = "gray49",
+          size = 2,
+          shape = 19
+        )
+      # +
+      #   annotate(
+      #     "text",
+      #     x = mean.age.fish,
+      #     y = mean_density_fished * 1.1,
+      #     label = "Mean",
+      #     color = viridis(1, option = "plasma"),
+      #     fontface = "bold",
+      #     hjust = -0.1
+      #   ) +
+      #   annotate(
+      #     "text",
+      #     x = mean.age.unfish,
+      #     y = mean_density_unfished * 1.1,
+      #     label = "Mean",
+      #     color = "gray49",
+      #     fontface = "bold",
+      #     hjust = -0.1
+      #   )
 
       ggplotly(p, tooltip = c("x", "y", "colour"))
     })
@@ -2269,9 +2337,6 @@ server <- function(input, output, session) {
 
       p <- ggplot(plot_data, aes(x = length, color = population)) +
         geom_density(alpha = 0.5, size = 1, show.legend = FALSE) +
-        #geom_line(size = 1.2) +
-        #geom_point(size = 2) +
-        #scale_fill_manual(values = c("Fished" = viridis(1,option="plasma"), "Unfished" = viridis(2,option="plasma"))) +
         scale_color_manual(
           values = c(
             "Fished" = viridis(1, option = "plasma"),
@@ -2288,7 +2353,7 @@ server <- function(input, output, session) {
         geom_vline(
           xintercept = c(input$L50, input$Linf),
           linetype = "dashed",
-          col = c("green", "orange")
+          col = c("darkgreen", "orange")
         )
 
       ggplotly(p, tooltip = c("x", "y", "colour"))
@@ -2298,10 +2363,6 @@ server <- function(input, output, session) {
     output$length_sel_plot <- renderPlotly({
       set.seed(19)
       pops <- populations()
-      #     plot_data <- rbind(
-      #      data.frame(length=pops$unfished$length,prop=(pops$unfished$numbers*pops$fished$selectivity)/sum(pops$unfished$numbers*pops$fished$selectivity), population = "Unfished"),
-      #      data.frame(length=pops$fished$length,prop=(pops$fished$numbers*pops$fished$selectivity)/sum(pops$fished$numbers*pops$fished$selectivity), population = "Fished")
-      #    )
 
       plot_data_fished <- do.call(
         c,
@@ -2339,9 +2400,33 @@ server <- function(input, output, session) {
         length = plot_data_unfished,
         population = "Unfished"
       )
+
       plot_data <- rbind(plot_data_fish_df, plot_data_unfish_df)
       max.d <- max(density(plot_data$length)$y)
       #col.line<-viridis(1,option="plasma")
+
+      mean.lt.fish <- mean(plot_data_fish_df$length)
+      mean.lt.unfish <- mean(plot_data_unfish_df$length)
+
+      dens_fished <- density(plot_data_fish_df$length, adjust = 1)
+
+      mean_density_fished <- approx(
+        dens_fished$x,
+        dens_fished$y,
+        xout = mean.lt.fish
+      )$y
+
+      dens_unfished <- density(
+        plot_data_unfish_df$length,
+        adjust = 1
+      )
+      mean_density_unfished <- approx(
+        dens_unfished$x,
+        dens_unfished$y,
+        xout = mean.lt.unfish
+      )$y
+
+      max.d <- max(c(dens_fished$y, dens_unfished$y))
 
       p <- ggplot(plot_data, aes(x = length, color = population)) +
         geom_density(alpha = 0.5, size = 1, show.legend = FALSE) +
@@ -2367,16 +2452,36 @@ server <- function(input, output, session) {
         annotate(
           "text",
           x = input$L50_bc + input$Linf_bc * 0.05,
-          y = max.d + max.d * 0.2,
+          y = max.d + max.d * 0.1,
           label = "L50",
-          col = "green"
+          col = "green",
+          size = 2.5
         ) +
         annotate(
           "text",
           x = input$Linf_bc + input$Linf_bc * 0.05,
-          y = max.d + max.d * 0.2,
+          y = max.d + max.d * 0.1,
           label = "Linf",
-          col = "orange"
+          col = "orange",
+          size = 2.5
+        ) +
+        geom_point(
+          aes(
+            x = mean.lt.fish,
+            y = mean_density_fished
+          ),
+          color = viridis(1, option = "plasma"),
+          size = 2,
+          shape = 19
+        ) +
+        geom_point(
+          aes(
+            x = mean.lt.unfish,
+            y = mean_density_unfished
+          ),
+          color = "gray49",
+          size = 2,
+          shape = 19
         )
 
       ggplotly(p, tooltip = c("x", "y", "colour"))
@@ -2384,7 +2489,6 @@ server <- function(input, output, session) {
 
     # Selectivity plot
     output$selectivity_plot_lt <- renderPlot({
-      #browser()
       ages <- 1:(5.4 / input$M_bc)
       lengths <- c(0:input$Linf_bc + 0.2 * input$Linf_bc)
 
@@ -2770,6 +2874,10 @@ server <- function(input, output, session) {
       TB_ratio = "",
       Lt_ratio = "",
       Age_ratio = "",
+      Sel_Lt_ratio = "",
+      Sel_Age_ratio = "",
+      L25per = "",
+      L95per = "",
       M = "",
       Linf = "",
       K = "",
@@ -2783,7 +2891,48 @@ server <- function(input, output, session) {
     #Capture index measures for chosen sampling
     observeEvent(input$save_results, {
       status <- stock_status()
-      mean_age_lt <- sel_mean_bio_comp()
+      mean_age_lt <- mean_bio_comp()
+      sel_mean_age_lt <- sel_mean_bio_comp()
+      pops <- populations()
+
+      lt_data_fished <- do.call(
+        c,
+        mapply(
+          function(x) {
+            rnorm(
+              round(pops$fished$numbers[x] * pops$fished$selectivity[x], 0),
+              pops$fished$length[x],
+              pops$fished$length[x] * 0.1
+            )
+          },
+          x = 1:nrow(pops$fished),
+          SIMPLIFY = TRUE
+        )
+      )
+      lt_data_fish_df <- data.frame(
+        length = lt_data_fished,
+        population = "Fished"
+      )
+      lt_data_unfished <- do.call(
+        c,
+        mapply(
+          function(x) {
+            rnorm(
+              round(pops$unfished$numbers[x] * pops$fished$selectivity[x], 0),
+              pops$unfished$length[x],
+              pops$unfished$length[x] * 0.1
+            )
+          },
+          x = 1:nrow(pops$unfished),
+          SIMPLIFY = TRUE
+        )
+      )
+      lt_data_unfish_df <- data.frame(
+        length = lt_data_unfished,
+        population = "Unfished"
+      )
+
+      lt_data <- rbind(lt_data_fish_df, lt_data_unfish_df)
 
       results_cap <- rbind(
         results_out(),
@@ -2792,6 +2941,10 @@ server <- function(input, output, session) {
           round(status$B_ratio, 2),
           round(mean_age_lt[2], 2),
           round(mean_age_lt[1], 2),
+          round(sel_mean_age_lt[2], 2),
+          round(sel_mean_age_lt[1], 2),
+          round(quantile(lt_data_fish_df$length, 0.25), 2),
+          round(quantile(lt_data_fish_df$length, 0.95), 2),
           input$M_bc,
           input$Linf_bc,
           input$K_bc,
@@ -3274,7 +3427,7 @@ server <- function(input, output, session) {
 
       # Calculate catch based on control rule type
       #   catch_values <- sapply(stock_ratio, function(b) {
-      #     browser()
+      #
       #     if (b <= input$b_target) {
       #       # Below limit: no fishing
       #       return(stock_ratio*input$E_msy)
@@ -3511,7 +3664,6 @@ server <- function(input, output, session) {
         ) %>%
         pull(catch) %>%
         first()
-      #browser()
 
       data <- control_rule_data()
       #Add threshhold option

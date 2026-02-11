@@ -2966,8 +2966,25 @@ server <- function(input, output, session) {
     })
 
     #Clear the saved samples
-    observeEvent(input$clear_samples, {
-      pop_samples(data.frame(Sampled = "", Population = ""))
+    observeEvent(input$clear_results, {
+      results_out(data.frame(
+        SSB_ratio = "",
+        TB_ratio = "",
+        Lt_ratio = "",
+        Age_ratio = "",
+        Sel_Lt_ratio = "",
+        Sel_Age_ratio = "",
+        L25per = "",
+        L95per = "",
+        M = "",
+        Linf = "",
+        K = "",
+        t0 = "",
+        L50 = "",
+        L95 = "",
+        Sel50 = "",
+        Sel95 = ""
+      ))
     })
   })
 

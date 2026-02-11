@@ -1173,12 +1173,27 @@ ui <- page_navbar(
             "To make logistic selectivity, the peak length can be made larger than the largest size in the population."
           )
         ),
-        actionButton(
-          "save_results",
-          "Save results",
-          class = "btn-outline-secondary",
-          style = "color: #fff; background-color: #eb860c; border-color: #eb860c"
+        fluidRow(
+          column(
+            width = 5,
+            actionButton(
+              "save_results",
+              "Save results",
+              class = "btn-outline-secondary",
+              style = "color: #fff; background-color: #eb860c; border-color: #eb860c"
+            )
+          ),
+          column(
+            width = 7,
+            actionButton(
+              "clear_results",
+              "Clear output table",
+              class = "btn-outline-secondary",
+              style = "color: #fff; background-color: #585955; border-color: black"
+            )
+          )
         ),
+
         downloadButton(
           "download_pops",
           "Download population outputs",
@@ -1257,7 +1272,7 @@ ui <- page_navbar(
         ),
 
         card(
-          card_header("Sensitivity results"),
+          card_header("Output table"),
           tableOutput("results_out"),
         )
       )

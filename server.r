@@ -1966,7 +1966,8 @@ server <- function(input, output, session) {
       maturity <- 1 /
         (1 +
           exp(
-            -log(19) * ((unfished$length - input$L50) / (input$L95 - input$L50))
+            -log(19) *
+              ((unfished$length - input$L50_bc) / (input$L95_bc - input$L50_bc))
           ))
       unfished$maturity <- fished$maturity <- maturity
 
@@ -1975,7 +1976,12 @@ server <- function(input, output, session) {
 
     stock_status <- reactive({
       pops <- populations()
-      calculate_stock_status(pops$fished, pops$unfished, input$L50, input$L95)
+      calculate_stock_status(
+        pops$fished,
+        pops$unfished,
+        input$L50_bc,
+        input$L95_bc
+      )
     })
 
     mean_bio_comp <- reactive({

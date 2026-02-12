@@ -1201,6 +1201,29 @@ ui <- page_navbar(
           style = "color: #fff; background-color: #347d48; border-color: #347d48"
         ),
 
+        fluidRow(
+          column(
+            width = 6,
+            numericInput(
+              "lt_den_samples",
+              "Length Samples:",
+              min = 1,
+              max = 1000000,
+              value = 200,
+              step = 1
+            ),
+          ),
+          column(
+            width = 6,
+            downloadButton(
+              "download_lengths",
+              "Download length samples",
+              class = "btn-outline-secondary",
+              style = "color: #fff; background-color: #347d48; border-color: #347d48"
+            )
+          )
+        ),
+
         card(
           card_header("Reference Points"),
           fluidRow(

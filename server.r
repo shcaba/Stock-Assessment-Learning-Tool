@@ -2094,6 +2094,17 @@ server <- function(input, output, session) {
       }
     )
 
+    # Download population outputs
+    output$download_lengths <- downloadHandler(
+      filename = function() {
+        paste0("lengths_out_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        req(Lt.samples())
+        write.csv(Lt.samples(), file, row.names = TRUE)
+      }
+    )
+
     # Age structure plot
     output$age_plot <- renderPlotly({
       pops <- populations()
@@ -2286,6 +2297,163 @@ server <- function(input, output, session) {
       #   )
 
       ggplotly(p, tooltip = c("x", "y", "colour"))
+    })
+
+    #Length densities
+    Lt.densities <- reactive({
+      set.seed(19)
+      pops <- populations()
+
+      #Total fish
+      lt_data <- rbind(
+        data.frame(pops$unfished, population = "Unfished"),
+        data.frame(pops$fished, population = "Fished")
+      )
+
+      lt_data_fished <- do.call(
+        c,
+        mapply(
+          function(x) {
+            rnorm(
+              round(pops$fished$numbers[x], 0),
+              pops$fished$length[x],
+              pops$fished$length[x] * 0.1
+            )
+          },
+          x = 1:nrow(pops$fished),
+          SIMPLIFY = TRUE
+        )
+      )
+
+      lt_data_unfished <- do.call(
+        c,
+        mapply(
+          function(x) {
+            rnorm(
+              round(pops$unfished$numbers[x], 0),
+              pops$unfished$length[x],
+              pops$unfished$length[x] * 0.1
+            )
+          },
+          x = 1:nrow(pops$unfished),
+          SIMPLIFY = TRUE
+        )
+      )
+
+      dens_fished <- density(lt_data_fished, adjust = 1)
+
+      dens_unfished <- density(
+        lt_data_unfished,
+        adjust = 1
+      )
+
+      # lt_data_fish_dens <- data.frame(
+      #   length = dens_fished,
+      #   population = "Fished"
+      # )
+
+      # lt_data_unfish_dens <- data.frame(
+      #   length = dens_unfished,
+      #   population = "Fished"
+      # )
+
+      #Selected fish
+      sel_lt_data_fished <- do.call(
+        c,
+        mapply(
+          function(x) {
+            rnorm(
+              round(pops$fished$numbers[x] * pops$fished$selectivity[x], 0),
+              pops$fished$length[x],
+              pops$fished$length[x] * 0.1
+            )
+          },
+          x = 1:nrow(pops$fished),
+          SIMPLIFY = TRUE
+        )
+      )
+
+      sel_lt_data_unfished <- do.call(
+        c,
+        mapply(
+          function(x) {
+            rnorm(
+              round(pops$unfished$numbers[x] * pops$fished$selectivity[x], 0),
+              pops$unfished$length[x],
+              pops$unfished$length[x] * 0.1
+            )
+          },
+          x = 1:nrow(pops$unfished),
+          SIMPLIFY = TRUE
+        )
+      )
+
+      sel_dens_fished <- density(sel_lt_data_fished, adjust = 1)
+
+      sel_dens_unfished <- density(
+        sel_lt_data_unfished,
+        adjust = 1
+      )
+
+      # sel_lt_data_unfish_dens <- data.frame(
+      #   length = sel_dens_unfished,
+      #   population = "Fished"
+      # )
+
+      # sel_lt_data_fish_dens <- data.frame(
+      #   length = sel_dens_unfished,
+      #   population = "Fished"
+      # )
+
+      Lt_densities <- list(
+        Total_den_unfished = dens_unfished,
+        Total_den_fished = dens_fished,
+        Selected_den_unfished = sel_dens_unfished,
+        Selected_den_fished = sel_dens_fished
+      )
+
+      Lt_densities
+    })
+
+    Lt.samples <- reactive({
+      Lt.densities <- Lt.densities()
+      dens_unfished <- Lt.densities$Total_den_unfished
+      dens_fished <- Lt.densities$Total_den_fished
+      sel_dens_unfished <- Lt.densities$Selected_den_unfished
+      sel_dens_fished <- Lt.densities$Selected_den_fished
+
+      lt_samp_tot_unfished <- sample(
+        dens_unfished$x,
+        input$lt_den_samples,
+        replace = TRUE,
+        prob = dens_unfished$y
+      )
+      lt_samp_tot_fished <- sample(
+        dens_fished$x,
+        input$lt_den_samples,
+        replace = TRUE,
+        prob = dens_fished$y
+      )
+      lt_samp_sel_unfished <- sample(
+        sel_dens_unfished$x,
+        input$lt_den_samples,
+        replace = TRUE,
+        prob = sel_dens_unfished$y
+      )
+      lt_samp_sel_fished <- sample(
+        sel_dens_fished$x,
+        input$lt_den_samples,
+        replace = TRUE,
+        prob = sel_dens_fished$y
+      )
+
+      Lt.samples <- data.frame(
+        Total_fish = lt_samp_tot_fished,
+        Total_unfished = lt_samp_tot_unfished,
+        Selected_fish = lt_samp_sel_fished,
+        Selected_unfished = lt_samp_sel_unfished
+      )
+      Lt.samples
     })
 
     # Total Length structure plot

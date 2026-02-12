@@ -1189,7 +1189,7 @@ ui <- page_navbar(
               "clear_results",
               "Clear output table",
               class = "btn-outline-secondary",
-              style = "color: #fff; background-color: #585955; border-color: black"
+              style = "color: #fff; background-color: #142530; border-color: black"
             )
           )
         ),
@@ -1198,7 +1198,7 @@ ui <- page_navbar(
           "download_pops",
           "Download population outputs",
           class = "btn-outline-secondary",
-          style = "color: #fff; background-color: #347d48; border-color: #347d48"
+          style = "color: #fff; background-color: #5D9741; border-color: #5D9741"
         ),
 
         fluidRow(
@@ -1219,7 +1219,7 @@ ui <- page_navbar(
               "download_lengths",
               "Download length samples",
               class = "btn-outline-secondary",
-              style = "color: #fff; background-color: #347d48; border-color: #347d48"
+              style = "color: #fff; background-color: #005595; border-color: #005595"
             )
           )
         ),

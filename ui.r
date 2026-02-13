@@ -81,7 +81,7 @@ ui <- page_navbar(
                       height = "100px",
                       width = "200px"
                     ),
-                    h3("Selectivty", class = "card-title")
+                    h3("Selectivity", class = "card-title")
                   )
                 ),
                 card_body(
@@ -1588,7 +1588,6 @@ ui <- page_navbar(
               tags$li(
                 "Fishing behavior (e.g, Distance traveled to fishing ground)"
               ),
-              tags$li("Species composition")
             ),
             tags$li("Model-based:"),
             tags$ol(

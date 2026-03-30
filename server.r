@@ -9,6 +9,10 @@ library(reshape2)
 library(shinyFiles)
 library(shinybusy)
 library(wesanderson)
+library(bslib)
+library(shinyWidgets)
+library(FSAsim)
+library(twosamples)
 
 #################
 ### Functions ###
@@ -67,11 +71,11 @@ calculate_population <- function(
   # Calculate selectivity
   if (F_mort > 0) {
     selectivity <- calc_selectivity(
-      length = lengths,
-      L50_asc,
-      L95_asc,
-      peak_length,
-      desc_sd
+      lengths = lengths,
+      L50_asc = L50_asc,
+      L95_asc = L95_asc,
+      peak_length = peak_length,
+      desc_sd = desc_sd
     )
   } else {
     selectivity <- rep(0, length(lengths))
@@ -185,6 +189,144 @@ calculate_yield <- function(F_rate, M, ages, selectivity, weight_at_age) {
 
   yield <- sum(catch_at_age * weight_at_age)
   return(yield)
+}
+
+#Run distributional tests
+#test.opt: 1= ks; 2=ad; 3=cvm; 4= wass; 5= dts (the default)
+Age_samp_check <- function(True_pop_mat, sampN, test.opt = 5) {
+  probs_in <- True_pop_mat$Number / sum(True_pop_mat$Number)
+  samp.size <- sample(True_pop_mat$Age, sampN, replace = TRUE, prob = probs_in)
+  age_vec <- data.frame(
+    age = min(True_pop_mat$Age):max(True_pop_mat$Age),
+    number = 0
+  )
+  tab.samp <- table(samp.size)
+  age_vec$number[age_vec$age %in% as.numeric(names(tab.samp))] <- tab.samp
+  age_vec$props <- age_vec$number / sum(age_vec$number)
+  True_pop_mat$Props <- True_pop_mat$Number / sum(True_pop_mat$Number)
+
+  #Run test
+  if (test.opt == 1) {
+    dts.out <- ks_test(True_pop_mat$Props, age_vec$props)
+  }
+  if (test.opt == 2) {
+    dts.out <- ad_test(True_pop_mat$Props, age_vec$props)
+  }
+  if (test.opt == 3) {
+    dts.out <- cvm_test(True_pop_mat$Props, age_vec$props)
+  }
+  if (test.opt == 4) {
+    dts.out <- wass_test(True_pop_mat$Props, age_vec$props)
+  }
+  if (test.opt == 5) {
+    dts.out <- dts_test(True_pop_mat$Props, age_vec$props)
+  }
+  #Create proportions object
+  True_ages_props <- data.frame(
+    Age = True_pop_mat$Age,
+    Prop = True_pop_mat$Props,
+    CDF = cumsum(True_pop_mat$Props),
+    Source = "Modelled"
+  )
+  Samp_ages_props <- data.frame(
+    Age = age_vec$age,
+    Prop = age_vec$props,
+    CDF = cumsum(age_vec$props),
+    Source = "Sampled"
+  )
+  True_samp_props <- rbind(True_ages_props, Samp_ages_props)
+
+  #Make object list
+  age_samps_ktest <- list(
+    True_pop_mat,
+    age_vec,
+    True_samp_props,
+    dts.out[2]
+  )
+  names(age_samps_ktest) <- c(
+    "True Ages",
+    "Sampled Ages",
+    "Proportions",
+    "P-value"
+  )
+  return(age_samps_ktest)
+}
+
+Pval.calc.plot <- function(
+  Numages_in,
+  numvec,
+  test.opt.in = 5,
+  reps = 100,
+  Plim = 0.85,
+  age.min = 10,
+  age.max = 27,
+  Title.in = ""
+) {
+  test_samp_num <- data.frame(Sample = numvec, pvalue = NA)
+  Z_samp_num <- data.frame(Sample = numvec, true_Z = NA, est_Z = NA)
+  for (ii in 1:reps) {
+    for (i in 1:length(numvec)) {
+      Samp_ages_tests <- Age_samp_check(
+        Numages_in,
+        numvec[i],
+        test.opt = test.opt.in
+      )
+      test_samp_num$pvalue[i] <- Samp_ages_tests$`P-value`
+
+      #Calculate catch curve estimate of Z
+      True.nums.minmax <- Numages_in$Number[(age.min + 1):(age.max)]
+      Samp.nums.minmax <- Samp_ages_tests$`Sampled Ages`$number[
+        (age.min + 1):(age.max)
+      ]
+      age.minmax.lm <- Numages_in$Age[(age.min + 1):(age.max)]
+
+      if (any(True.nums.minmax == 0)) {
+        True.nums.minmax[True.nums.minmax == 0] <- NA
+      }
+
+      if (any(Samp.nums.minmax == 0)) {
+        Samp.nums.minmax[Samp.nums.minmax == 0] <- NA
+      }
+
+      ln_true_nums <- log(True.nums.minmax)
+      ln_est_nums <- log(Samp.nums.minmax)
+
+      true_linear_points <- length(True.nums.minmax) -
+        sum(is.na(True.nums.minmax))
+      est_linear_points <- length(Samp.nums.minmax) -
+        sum(is.na(Samp.nums.minmax))
+
+      if (true_linear_points > 1) {
+        Z_samp_num$true_Z[i] <- lm(ln_true_nums ~ age.minmax.lm)$coeff[2]
+      } else {
+        Z_samp_num$true_Z[i] <- NA
+      }
+
+      if (est_linear_points > 1) {
+        Z_samp_num$est_Z[i] <- lm(ln_est_nums ~ age.minmax.lm)$coeff[2]
+      } else {
+        Z_samp_num$est_Z[i] <- NA
+      }
+    }
+
+    if (ii == 1) {
+      test_samp_num_rep <- test_samp_num
+      Z_samp_num_rep <- Z_samp_num
+    }
+    if (ii > 1) {
+      test_samp_num_rep <- rbind(test_samp_num_rep, test_samp_num)
+      Z_samp_num_rep <- rbind(Z_samp_num_rep, Z_samp_num)
+    }
+    incProgress(1 / reps, detail = paste("Doing rep ", ii))
+  }
+
+  return(list(
+    Numages_in = Numages_in,
+    test_samp_num_rep = test_samp_num_rep,
+    test_samp_num = test_samp_num,
+    Z_samp_num = Z_samp_num,
+    Z_samp_num_rep = Z_samp_num_rep
+  ))
 }
 
 
@@ -1881,6 +2023,243 @@ server <- function(input, output, session) {
 
         index_plot
       }
+    })
+  })
+
+  ######################
+  #### Sampling age ####
+  ######################
+  nav_hide("navbar", "agesamp")
+  observeEvent(input$goto_agesamp, {
+    nav_show("navbar", "agesamp")
+    nav_select("navbar", "agesamp")
+    Numages_simpop <- reactive({
+      ages <- 0:(5.4 / input$M.pval)
+
+      simpop <- calculate_population(
+        ages = ages,
+        Linf = input$Linf.pval,
+        K = input$K.pval,
+        t0 = input$t0.pval,
+        M = input$M.pval,
+        R0 = 10000000,
+        F_mort = input$F.pval,
+        L50_asc = input$L50_asc.pval,
+        L95_asc = input$L95_asc.pval,
+        peak_length = input$peak_length.pval,
+        desc_sd = input$desc_sd.pval
+      )
+
+      samp.select <- calc_selectivity(
+        length = simpop$length,
+        L50_asc = input$L50_asc.pval,
+        L95_asc = input$L95_asc.pval,
+        peak_length = input$peak_length.pval,
+        desc_sd = input$desc_sd.pval
+      )
+
+      Numages_simpop <- data.frame(
+        Age = simpop$age,
+        Length = simpop$length,
+        Numbers = simpop$numbers * samp.select,
+        Selectivity = samp.select
+      )
+
+      minage.in <- Numages_simpop$Age[min(which(
+        Numages_simpop$Selectivity > 0.99
+      ))]
+
+      updateNumericInput(
+        session,
+        "CC.sel_agemin",
+        value = minage.in
+      )
+
+      #max.age.in<-max(which((Numages_simpop$Numbers / 10000000) < 0.005))
+      max.age.in <- which(
+        (Numages_simpop$Numbers / 10000000) < 0.005 &
+          Numages_simpop$Age > minage.in
+      )
+
+      if (any(max.age.in)) {
+        max.age.in = min(max.age.in)
+      } else {
+        max.age.in <- input$M.pval
+      }
+
+      updateNumericInput(
+        session,
+        "CC.sel_agemax",
+        value = max.age.in
+      )
+
+      return(Numages_simpop)
+    })
+
+    # Selectivity plot
+    output$selectivity_plot <- renderPlotly({
+      data <- Numages_simpop()
+      p <- ggplot(data, aes(Age, Selectivity)) +
+        geom_line(color = "#2C3E50", linewidth = 1.2) +
+        theme_bw() +
+        labs(title = "Selectivity by Age", x = "Age", y = "Selectivity") +
+        theme(plot.title = element_text(hjust = 0.5))
+      print(ggplotly(p))
+    })
+
+    # Age distribution plot
+    output$age_plot <- renderPlotly({
+      data <- Numages_simpop()
+      p <- ggplot(data, aes(Age, Numbers / max(Numbers))) +
+        geom_line(color = "#E74C3C", linewidth = 1.2) +
+        theme_bw() +
+        labs(title = "Age Distribution", x = "Age", y = "Proportion") +
+        theme(plot.title = element_text(hjust = 0.5))
+      print(ggplotly(p))
+    })
+
+    # Length at age plot
+    output$length_plot <- renderPlotly({
+      data <- Numages_simpop()
+      p <- ggplot(data, aes(Age, Length)) +
+        geom_line(color = "#3498DB", linewidth = 1.2) +
+        theme_bw() +
+        labs(title = "Von Bertalanffy Growth Curve", x = "Age", y = "Length") +
+        theme(plot.title = element_text(hjust = 0.5))
+      print(ggplotly(p))
+    })
+
+    Pvals_profile <- eventReactive(input$calculate.pval, {
+      #test.name <- c("KS", "AD", "CVM", "WASS", "DTS")
+
+      withProgress(message = 'Calculating distribution tests', value = 0, {
+        Pvals_profile <- Pval.calc.plot(
+          Numages_in = Numages_simpop(),
+          numvec = c(
+            25,
+            50,
+            seq(100, 1000, 100),
+            seq(1500, input$maxsamp, 500)
+          ),
+          #test.opt.in = which(test.name == input$dist_test),
+          test.opt.in = 5,
+          reps = input$reps.pval,
+          Plim = input$Plim.pval,
+          age.min = input$CC.sel_agemin,
+          age.max = input$CC.sel_agemax,
+          Title.in = "Sim. Pop. with F=0.1"
+        )
+      })
+      return(Pvals_profile)
+    })
+
+    output$pvals_plot <- renderPlotly({
+      test_samp_num_rep <- Pvals_profile()$test_samp_num_rep
+
+      p <- ggplot(test_samp_num_rep, aes(Sample, pvalue)) +
+        stat_summary(fun.data = "mean_cl_boot", col = "blue") +
+        stat_summary(fun = "mean", geom = "point", size = 0.75) +
+        geom_hline(
+          yintercept = input$Plim.pval,
+          col = "red",
+          linetype = "dotted"
+        ) +
+        xlab("Sample size") +
+        ylab(paste0(input$dist_test, " P-value")) +
+        ylim(0, 1) +
+        ggtitle("Distribution test p-values based on sample size") +
+        theme_bw()
+      print(ggplotly(p))
+    })
+
+    output$Z_comp_plot <- renderPlotly({
+      Z_samp_num_rep <- Pvals_profile()$Z_samp_num_rep
+
+      p <- ggplot(Z_samp_num_rep, aes(Sample, est_Z)) +
+        stat_summary(fun.data = "mean_cl_boot", col = "blue") +
+        stat_summary(fun = "mean", geom = "point", size = 0.75) +
+        geom_hline(
+          yintercept = -(input$M.pval + input$F.pval),
+          col = "red",
+          linetype = "dotted"
+        ) +
+        xlab("Sample size") +
+        ylab(paste0("Total mortality")) +
+        expand_limits(y = 0) +
+        ggtitle(
+          "Total mortality estimates based on sample size. True value is horizontal line."
+        ) +
+        theme_bw()
+      print(ggplotly(p))
+    })
+
+    output$Z_comp_plot_II <- renderPlotly({
+      Z_samp_num_rep <- Pvals_profile()$Z_samp_num_rep
+      true_Z <- mean(Z_samp_num_rep$true_Z)
+
+      p <- ggplot(Z_samp_num_rep, aes(Sample, est_Z)) +
+        stat_summary(fun.data = "mean_cl_boot", col = "blue") +
+        stat_summary(fun = "mean", geom = "point", size = 0.75) +
+        geom_hline(yintercept = true_Z, col = "red", linetype = "dotted") +
+        xlab("Sample size") +
+        ylab(paste0("Total mortality")) +
+        expand_limits(y = 0) +
+        ggtitle(
+          "Total mortality estimates based on sample size. True value is horizontal line."
+        ) +
+        theme_bw()
+      print(ggplotly(p))
+    })
+
+    Samp_ages_comp <- eventReactive(input$calculate.sampsize, {
+      Pvals_profile <- Pvals_profile()
+      Samp_ages_comp <- Age_samp_check(Pvals_profile$Numages_in, input$sampsize)
+      return(Samp_ages_comp)
+    })
+
+    output$Ageprop_plot <- renderPlot({
+      mod <- subset(Samp_ages_comp()$Proportions, Source == "Modelled")
+      samp <- subset(Samp_ages_comp()$Proportions, Source == "Sampled")
+
+      mod.nums.plot <- mod$Prop[(input$CC.sel_agemin + 1):(input$CC.sel_agemax)]
+      samp.nums.plot <- samp$Prop[
+        (input$CC.sel_agemin + 1):(input$CC.sel_agemax)
+      ]
+      age.range <- mod$Age[(input$CC.sel_agemin + 1):(input$CC.sel_agemax)]
+
+      if (any(mod.nums.plot == 0)) {
+        mod.nums.plot[mod.nums.plot == 0] <- NA
+      }
+      if (any(samp.nums.plot == 0)) {
+        samp.nums.plot[samp.nums.plot == 0] <- NA
+      }
+
+      mod.Z <- lm(
+        log(mod.nums.plot) ~ age.range
+      )$coeff[2]
+
+      samp.Z <- lm(
+        log(samp.nums.plot) ~ age.range
+      )$coeff[2]
+
+      ggplot(Samp_ages_comp()$Proportions, aes(Age, Prop, col = Source)) +
+        geom_line() +
+        theme_bw() +
+        ggtitle(paste0(
+          "Sample size = ",
+          input$sampsize,
+          "; True Z = ",
+          round(mod.Z, 3),
+          " & Est. Z = ",
+          round(samp.Z, 3)
+        ))
+    })
+
+    output$CDF_plot <- renderPlot({
+      ggplot(Samp_ages_comp()$Proportions, aes(Age, CDF, col = Source)) +
+        geom_line() +
+        theme_bw() +
+        ggtitle(paste0("Sample size = ", input$sampsize))
     })
   })
 

@@ -1262,7 +1262,7 @@ ui <- page_navbar(
           plotlyOutput("length_plot")
         ),
         card(
-          card_header("Age Distribution"),
+          card_header("Selected Age Distribution"),
           plotlyOutput("age_plot")
         )
       ),

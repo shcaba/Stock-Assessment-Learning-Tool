@@ -1055,103 +1055,122 @@ ui <- page_navbar(
     title = "Sampling age",
     value = "agesamp",
     page_sidebar(
-      title = "Sampling Age Distributions: How many samples are needed?",
+      title = "Sampling Age Distributions: How many samples are needed? Set up a life history and selectivity scenario, then explore age sample sizes and how well the age distributions and mortality are estimated by sample size.",
       sidebar = sidebar(
-        width = 400,
-        h5(
-          "Set up the life history to explore. Growth, mortality, and selectivity will create an age distribution from which to sample."
-        ),
+        width = 525,
         card(
-          card_header("Growth Parameters"),
-          fluidRow(
-            column(
-              width = 4,
-              numericInput("Linf.pval", "L∞", value = 60, min = 1)
-            ),
-            column(
-              width = 4,
-              numericInput(
-                "K.pval",
-                "k",
-                value = 0.133,
-                min = 0.01,
-                step = 0.01
-              )
-            ),
-            column(
-              width = 4,
-              numericInput("t0.pval", "t0", value = 0, step = 0.1)
-            )
+          card_header("Population Parameters", class = "bg-orange"),
+          h5(
+            "Initialize population life history; the growth, mortality, and selectivity parameters will create an age distribution from which to sample. Age CV is the CV around the ages that creates a stochastic rather than equilibrium age distribution."
           ),
-          fluidRow(
-            column(
-              width = 12,
-              numericInput(
-                "Rec_CV",
-                "Stochastic Variance (CV) on Age Distribution",
-                value = 0
+          card(
+            card_header("Growth Parameters", class = "bg-orange"),
+            fluidRow(
+              column(
+                width = 3,
+                numericInput("Linf.pval", "L∞", value = 60, min = 1)
+              ),
+              column(
+                width = 3,
+                numericInput(
+                  "K.pval",
+                  "k",
+                  value = 0.133,
+                  min = 0.01,
+                  step = 0.01
+                )
+              ),
+              column(
+                width = 3,
+                numericInput("t0.pval", "t0", value = 0, step = 0.1)
+              ),
+              column(
+                width = 3,
+                numericInput(
+                  "Rec_CV",
+                  "Age CV",
+                  value = 0
+                )
               )
-            )
+            ),
+            # fluidRow(
+            #   column(
+            #     width = 12,
+            #     numericInput(
+            #       "Rec_CV",
+            #       "Stochastic Variance (CV) on Age Distribution",
+            #       value = 0
+            #     )
+            #   )
             # column(
             #   width = 6,
             #   numericInput("Age_err", "Age error (CV)", value = 0)
             # )
+            #),
           ),
-        ),
-        card(
-          card_header("Mortality Parameters"),
-          fluidRow(
-            column(
-              width = 6,
-              numericInput(
-                "M.pval",
-                "Natural mortality",
-                value = 0.2,
-                min = 0.001,
-                step = 0.001
-              )
-            ),
-            column(
-              width = 6,
-              numericInput(
-                "F.pval",
-                "Fishing mortality",
-                value = 0,
-                min = 0,
-                step = 0.001
+          card(
+            card_header("Mortality Parameters", class = "bg-orange"),
+            fluidRow(
+              column(
+                width = 6,
+                numericInput(
+                  "M.pval",
+                  "Natural mortality",
+                  value = 0.2,
+                  min = 0.001,
+                  step = 0.001
+                )
+              ),
+              column(
+                width = 6,
+                numericInput(
+                  "F.pval",
+                  "Fishing mortality",
+                  value = 0,
+                  min = 0,
+                  step = 0.001
+                )
               )
             )
-          )
-        ),
-        card(
-          card_header("Selectivity Parameters"),
-          fluidRow(
-            column(
-              width = 6,
-              numericInput("L50_asc.pval", "L50 ascending", value = 30, min = 1)
-            ),
-            column(
-              width = 6,
-              numericInput("L95_asc.pval", "L95 ascending", value = 40, min = 1)
-            )
           ),
-          fluidRow(
-            column(
-              width = 6,
-              numericInput(
-                "peak_length.pval",
-                "Peak length",
-                value = 45,
-                min = 1
-              )
-            ),
-            column(
-              width = 6,
-              numericInput(
-                "desc_sd.pval",
-                "Descending SD",
-                value = 100,
-                min = 1
+          card(
+            card_header("Selectivity Parameters", class = "bg-orange"),
+            fluidRow(
+              column(
+                width = 3,
+                numericInput(
+                  "L50_asc.pval",
+                  "L50 ascending",
+                  value = 30,
+                  min = 1
+                )
+              ),
+              column(
+                width = 3,
+                numericInput(
+                  "L95_asc.pval",
+                  "L95 ascending",
+                  value = 40,
+                  min = 1
+                )
+              ),
+              column(
+                width = 3,
+                numericInput(
+                  "peak_length.pval",
+                  "Peak length selectivity",
+                  value = 45,
+                  min = 1
+                )
+              ),
+              column(
+                width = 3,
+                numericInput(
+                  "desc_sd.pval",
+                  "Descending SD",
+                  value = 100,
+                  min = 1
+                )
               )
             )
           )
@@ -1166,148 +1185,188 @@ ui <- page_navbar(
         #   numericInput("R0", "R0 (Initial recruitment)", value = 1000, min = 1),
         #   numericInput("max_age", "Maximum age", value = 20, min = 1, max = 50)
         # ),
-        h5(
-          "Explore how sample size improves estimation of the age distribution and total mortality."
-        ),
-        h6(
-          "Reps are how many times each sample size is taken. Max sample is the highest sample value of the profile. P-value limit is user chosen and suggest sufficient similarity in distributions is achieved. Age range to run the catch curve estimation of Z. Default values are based on age at full selectivity and maximum age. Age error is entered as a CV for all ages."
-        ),
         card(
-          card_header("Distribution test options"),
-          fluidRow(
-            column(
-              width = 4,
-              #   radioButtons(
-              #     inputId = "dist_test",
-              #     label = "Distribution test",
-              #     choices = c("DTS", "WASS", "CVM", "AD", "KS"),
-              #     selected = "DTS"
-              #   )
-              numericInput(
-                "reps.pval",
-                "How many reps?",
-                value = 100,
-                min = 1,
-                max = 1000000000
+          card_header(
+            "Explore how sample size improves estimation of the age distribution and total mortality.",
+            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          ),
+          h6(
+            "Reps are how many times each sample size is taken. Max sample is the highest sample value of the profile. P-value limit is user chosen and suggest sufficient similarity in distributions is achieved. Age range to run the catch curve estimation of Z. Default values are based on age at full selectivity and maximum age. Age error is entered as a CV for all ages."
+          ),
+          card(
+            card_header(
+              "Distribution test options",
+              style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+            ),
+            #   radioButtons(
+            #     inputId = "dist_test",
+            #     label = "Distribution test",
+            #     choices = c("DTS", "WASS", "CVM", "AD", "KS"),
+            #     selected = "DTS"
+            #   )
+
+            fluidRow(
+              column(
+                width = 4,
+                numericInput(
+                  "reps.pval",
+                  "How many reps?",
+                  value = 100,
+                  min = 1,
+                  max = 1000000000
+                )
+              ),
+              column(
+                width = 4,
+                numericInput(
+                  "maxsamp",
+                  "Max sample",
+                  value = 2000,
+                  min = 1000,
+                  step = 1
+                )
+              ),
+              column(
+                width = 4,
+                numericInput(
+                  "Plim.pval",
+                  "P-value limit",
+                  value = 0.99,
+                  min = 0,
+                  max = 1,
+                  step = 0.01
+                )
+              ),
+            ),
+            fluidRow(
+              column(
+                width = 4,
+                numericInput(
+                  "CC.sel_agemin",
+                  "Min age",
+                  value = 10,
+                  min = 1
+                )
+              ),
+              column(
+                width = 4,
+                # numericInput(
+                #   "reps.pval",
+                #   "How many reps?",
+                #   value = 100,
+                #   min = 1,
+                #   max = 1000000000
+                # )
+                numericInput(
+                  "CC.sel_agemax",
+                  "Max age",
+                  value = 5.4 / 0.2,
+                  min = 1
+                )
+              ),
+              column(
+                width = 4,
+                numericInput("Age_err", "Age error", value = 0)
               )
             ),
+            actionButton(
+              "calculate.pval",
+              "Calculate Distribution Tests",
+              #icon("paper-plane"),
+              #class = "btn-blue w-100"
+              style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+            )
+          )
+        ),
+        card(
+          card_header(
+            "Compare age distribution from chosen sample size and age range",
+            style = "color: #000000; background-color: #1df0a6; border-color: #1df0a6"
+          ),
+          fluidRow(
             column(
-              width = 4,
+              width = 6,
               numericInput(
-                "maxsamp",
-                "Maximum sample",
-                value = 2000,
-                min = 1000,
+                "sampsize",
+                "Sample size",
+                value = 500,
+                min = 1,
+                max = 1000000,
                 step = 1
               )
             ),
             column(
-              width = 4,
-              numericInput(
-                "Plim.pval",
-                "P-value limit",
-                value = 0.95,
-                min = 0,
-                max = 1,
-                step = 0.01
+              width = 6,
+              div(
+                class = "form-group shiny-input-container",
+                shiny::tags$label(
+                  "\u00a0",
+                  class = "control-label",
+                  div(actionButton(
+                    "calculate.sampsize",
+                    "Show Distribution Comparison",
+                    style = "color: #000000; background-color: #1df0a6; border-color: #1df0a6"
+                  ))
+                )
               )
-            ),
-          ),
-          fluidRow(
-            column(
-              width = 4,
-              numericInput(
-                "CC.sel_agemin",
-                "Min age",
-                value = 10,
-                min = 1
-              )
-            ),
-            column(
-              width = 4,
-              # numericInput(
-              #   "reps.pval",
-              #   "How many reps?",
-              #   value = 100,
-              #   min = 1,
-              #   max = 1000000000
-              # )
-              numericInput(
-                "CC.sel_agemax",
-                "Max age",
-                value = 5.4 / 0.2,
-                min = 1
-              )
-            ),
-            column(
-              width = 4,
-              numericInput("Age_err", "Age error", value = 0)
             )
-          ),
-          actionButton(
-            "calculate.pval",
-            "Calculate Distribution Tests",
-            class = "btn-primary w-100"
           )
         ),
-        card(
-          card_header(
-            "Compare age distribution from chosen sample size and age range"
-          ),
-          numericInput(
-            "sampsize",
-            "Sample size",
-            value = 500,
-            min = 1,
-            max = 1000000,
-            step = 1
-          )
-        ),
-        actionButton(
-          "calculate.sampsize",
-          "Show Comparison",
-          class = "btn-primary w-100"
-        )
       ),
       layout_columns(
         col_widths = c(4, 4, 4),
         card(
-          card_header("Selectivity by Age"),
-          plotlyOutput("selectivity_plot")
+          full_screen = TRUE,
+          card_header("Selectivity by Age", class = "bg-orange"),
+          card_body(plotlyOutput("selectivity_plot"), min_height = 200)
         ),
         card(
-          card_header("Length at Age"),
-          plotlyOutput("length_plot")
+          full_screen = TRUE,
+          card_header("Length at Age", class = "bg-orange"),
+          card_body(plotlyOutput("length_plot"), min_height = 200)
         ),
         card(
-          card_header("Selected Age Distribution"),
-          plotlyOutput("age_plot")
+          full_screen = TRUE,
+          card_header("Selected Age Distribution", class = "bg-orange"),
+          card_body(plotlyOutput("age_plot"), min_height = 200)
         )
       ),
       layout_columns(
         col_widths = c(6, 6),
         card(
-          card_header("Distribution test p-value by sample size"),
-          plotlyOutput("pvals_plot")
+          full_screen = TRUE,
+          card_header(
+            "Distribution test p-value by sample size",
+            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          ),
+          card_body(plotlyOutput("pvals_plot"), min_height = 200)
         ),
         card(
-          card_header("Estimate total mortality"),
-          plotlyOutput("Z_comp_plot_II")
+          full_screen = TRUE,
+          card_header(
+            "Estimate total mortality",
+            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          ),
+          card_body(plotlyOutput("Z_comp_plot_II"), min_height = 200)
         ),
       ),
       layout_columns(
         col_widths = c(6, 6),
         card(
+          full_screen = TRUE,
           card_header(
-            "Comparison of true and sampled age distributions based on sample size"
+            "Comparison of true and sampled age distributions based on sample size",
+            style = "color: #000000; background-color: #1df0a6; border-color: #1df0a6"
           ),
-          plotOutput("Ageprop_plot")
+          card_body(plotOutput("Ageprop_plot"), min_height = 200)
         ),
         card(
+          full_screen = TRUE,
           card_header(
-            "Comparison of true and sampled cumulative distributions based on sample size"
+            "Comparison of true and sampled cumulative distributions based on sample size",
+            style = "color: #000000; background-color: #1df0a6; border-color: #1df0a6"
           ),
-          plotOutput("CDF_plot")
+          card_body(plotOutput("CDF_plot"), min_height = 200)
         )
       )
     )

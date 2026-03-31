@@ -193,9 +193,14 @@ calculate_yield <- function(F_rate, M, ages, selectivity, weight_at_age) {
 
 #Run distributional tests
 #test.opt: 1= ks; 2=ad; 3=cvm; 4= wass; 5= dts (the default)
-Age_samp_check <- function(True_pop_mat, sampN, test.opt = 5) {
+Age_samp_check <- function(True_pop_mat, sampN, test.opt = 5, Age_err = 0) {
   probs_in <- True_pop_mat$Number / sum(True_pop_mat$Number)
   samp.size <- sample(True_pop_mat$Age, sampN, replace = TRUE, prob = probs_in)
+#Create ageing error in samples
+  if (Age_err > 0) {
+    samp.size=round(rnorm(samp.size,samp.size,samp.size*Age_err))
+  }
+  
   age_vec <- data.frame(
     age = min(True_pop_mat$Age):max(True_pop_mat$Age),
     number = 0
@@ -256,6 +261,7 @@ Pval.calc.plot <- function(
   Numages_in,
   numvec,
   test.opt.in = 5,
+  Age_err = 0,
   reps = 100,
   Plim = 0.85,
   age.min = 10,
@@ -269,7 +275,8 @@ Pval.calc.plot <- function(
       Samp_ages_tests <- Age_samp_check(
         Numages_in,
         numvec[i],
-        test.opt = test.opt.in
+        test.opt = test.opt.in,
+        Age_err = Age_err
       )
       test_samp_num$pvalue[i] <- Samp_ages_tests$`P-value`
 
@@ -2058,6 +2065,14 @@ server <- function(input, output, session) {
         desc_sd = input$desc_sd.pval
       )
 
+      if (input$Rec_CV > 0) {
+        simpop$numbers <- rnorm(
+          simpop$numbers,
+          simpop$numbers,
+          simpop$numbers * input$Rec_CV
+        )
+      }
+
       Numages_simpop <- data.frame(
         Age = simpop$age,
         Length = simpop$length,
@@ -2143,6 +2158,7 @@ server <- function(input, output, session) {
           ),
           #test.opt.in = which(test.name == input$dist_test),
           test.opt.in = 5,
+          Age_err = input$Age_err,
           reps = input$reps.pval,
           Plim = input$Plim.pval,
           age.min = input$CC.sel_agemin,
@@ -2213,7 +2229,11 @@ server <- function(input, output, session) {
 
     Samp_ages_comp <- eventReactive(input$calculate.sampsize, {
       Pvals_profile <- Pvals_profile()
-      Samp_ages_comp <- Age_samp_check(Pvals_profile$Numages_in, input$sampsize)
+      Samp_ages_comp <- Age_samp_check(
+        Pvals_profile$Numages_in,
+        input$sampsize,
+        Age_err = input$Age_err
+      )
       return(Samp_ages_comp)
     })
 

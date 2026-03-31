@@ -1083,6 +1083,20 @@ ui <- page_navbar(
               numericInput("t0.pval", "t0", value = 0, step = 0.1)
             )
           ),
+          fluidRow(
+            column(
+              width = 12,
+              numericInput(
+                "Rec_CV",
+                "Stochastic Variance (CV) on Age Distribution",
+                value = 0
+              )
+            )
+            # column(
+            #   width = 6,
+            #   numericInput("Age_err", "Age error (CV)", value = 0)
+            # )
+          ),
         ),
         card(
           card_header("Mortality Parameters"),
@@ -1156,7 +1170,7 @@ ui <- page_navbar(
           "Explore how sample size improves estimation of the age distribution and total mortality."
         ),
         h6(
-          "Reps are how many times each sample size is taken. Max sample is the highest sample value of the profile. P-value limit is user chosen and suggest sufficient similarity in distributions is achieved. Age range to run the catch curve estimation of Z. Default values are based on age at full selectivity and maximum age."
+          "Reps are how many times each sample size is taken. Max sample is the highest sample value of the profile. P-value limit is user chosen and suggest sufficient similarity in distributions is achieved. Age range to run the catch curve estimation of Z. Default values are based on age at full selectivity and maximum age. Age error is entered as a CV for all ages."
         ),
         card(
           card_header("Distribution test options"),
@@ -1201,7 +1215,7 @@ ui <- page_navbar(
           ),
           fluidRow(
             column(
-              width = 6,
+              width = 4,
               numericInput(
                 "CC.sel_agemin",
                 "Min age",
@@ -1210,7 +1224,7 @@ ui <- page_navbar(
               )
             ),
             column(
-              width = 6,
+              width = 4,
               # numericInput(
               #   "reps.pval",
               #   "How many reps?",
@@ -1224,6 +1238,10 @@ ui <- page_navbar(
                 value = 5.4 / 0.2,
                 min = 1
               )
+            ),
+            column(
+              width = 4,
+              numericInput("Age_err", "Age error", value = 0)
             )
           ),
           actionButton(

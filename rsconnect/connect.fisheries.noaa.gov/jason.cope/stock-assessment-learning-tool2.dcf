@@ -5,9 +5,9 @@ account: jason.cope
 server: connect.fisheries.noaa.gov
 hostUrl: https://connect.fisheries.noaa.gov/__api__
 appId: 558
-bundleId: 4057
+bundleId: 4324
 url: https://connect.fisheries.noaa.gov/SALT/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: Development files
+ignoredFiles: Functions.R|Development files

@@ -13,6 +13,7 @@ library(bslib)
 library(shinyWidgets)
 library(FSAsim)
 library(twosamples)
+library(Hmisc)
 
 #################
 ### Functions ###
@@ -196,11 +197,11 @@ calculate_yield <- function(F_rate, M, ages, selectivity, weight_at_age) {
 Age_samp_check <- function(True_pop_mat, sampN, test.opt = 5, Age_err = 0) {
   probs_in <- True_pop_mat$Number / sum(True_pop_mat$Number)
   samp.size <- sample(True_pop_mat$Age, sampN, replace = TRUE, prob = probs_in)
-#Create ageing error in samples
+  #Create ageing error in samples
   if (Age_err > 0) {
-    samp.size=round(rnorm(samp.size,samp.size,samp.size*Age_err))
+    samp.size = round(rnorm(samp.size, samp.size, samp.size * Age_err))
   }
-  
+
   age_vec <- data.frame(
     age = min(True_pop_mat$Age):max(True_pop_mat$Age),
     number = 0

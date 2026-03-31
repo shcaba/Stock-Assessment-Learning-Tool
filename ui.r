@@ -1257,7 +1257,7 @@ ui <- page_navbar(
           numericInput(
             "sampsize",
             "Sample size",
-            value = 700,
+            value = 500,
             min = 1,
             max = 1000000,
             step = 1

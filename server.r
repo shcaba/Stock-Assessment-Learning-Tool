@@ -14,10 +14,60 @@ library(shinyWidgets)
 library(FSAsim)
 library(twosamples)
 library(Hmisc)
+library(FishLife)
 
 #################
 ### Functions ###
 #################
+fishlife <- function(species) {
+  # Setup container
+  spp <- sort(unique(species))
+  fl <- data.frame(
+    species = spp,
+    linf_cm = NA,
+    k = NA,
+    winf_g = NA,
+    tmax_yr = NA,
+    tmat_yr = NA,
+    m = NA,
+    lmat_cm = NA,
+    temp_c = NA,
+    stringsAsFactors = F
+  )
+
+  # Loop through species
+  for (i in 1:nrow(fl)) {
+    # Get spp info
+    sciname <- fl$species[i]
+    genus <- stringr::word(sciname, 1)
+    nwords_in_spp <- length(strsplit(sciname, " ")[[1]])
+    species <- stringr::word(sciname, start = 2, end = nwords_in_spp)
+    species <- ifelse(species == "spp", "predictive", species)
+
+    # Try looking up in FishLife
+    spp_info <- try(FishLife::Plot_taxa(
+      FishLife::Search_species(Genus = genus, Species = species)$match_taxonomy
+    ))
+    if (inherits(spp_info, "try-error")) {
+      # Record blanks
+      #      fl[i,2:ncol(fl)] <- rep(NA, ncol(fl)-1)
+    } else {
+      # Values are in log-scale except temperature
+      spp_lh_vals_log <- spp_info[[1]]$Mean_pred
+      spp_lh_vals <- c(
+        exp(spp_lh_vals_log[1:7]),
+        spp_lh_vals_log[8],
+        spp_lh_vals_log[9:20]
+      )
+      #     fl[i,2:ncol(fl)] <- spp_lh_vals
+    }
+  }
+
+  # Return
+  #  return(fl)
+  return(spp_lh_vals)
+}
+
 von_bertalanffy <- function(age, Linf, K, t0 = 0) {
   Linf * (1 - exp(-K * (age - t0)))
 }
@@ -337,7 +387,8 @@ Pval.calc.plot <- function(
   ))
 }
 
-
+##################################################################
+####################### END FUNCTIONS ############################
 ##################################################################
 
 server <- function(input, output, session) {
@@ -388,6 +439,49 @@ server <- function(input, output, session) {
       )
     })
 
+    output$downloadFishLifebutton <- renderUI({
+      parms.out <- try(fishlife(input$Genspp_FL))
+      if (inherits(parms.out, "try-error") == TRUE) {
+        actionButton(
+          "dummybutton",
+          "No download available",
+          icon = icon("download")
+        )
+      } else {
+        downloadButton('downloadFishLife', 'Download FishLife estimates')
+      }
+    })
+
+    observe({
+      parms.out <- try(fishlife(input$Genspp_FL))
+      if (inherits(parms.out, "try-error") == TRUE) {
+        parms.out <- NA
+      } else {
+        taxa <- FishLife::Search_species(
+          Genus = stringr::word(input$Genspp_FL, 1),
+          Species = stringr::word(input$Genspp_FL, 2)
+        )$match_taxonomy[1]
+
+        fishlife.out <- data.frame(
+          Parameter = names(parms.out),
+          Value = as.numeric(parms.out),
+          Taxonomy = taxa
+        )
+
+        timestamp <- format(Sys.time(), "%a %b %d %Y %X")
+        timestamp <- gsub(":", "", timestamp)
+
+        output$downloadFishLife <- downloadHandler(
+          filename = function() {
+            paste0(input$Genspp_FL, "_", timestamp, ".csv")
+          },
+          content = function(file) {
+            write.csv(fishlife.out, file = file)
+          }
+        )
+      }
+    })
+
     # Natural Mortality Plot
     output$mortality_plot <- renderPlotly({
       data <- plot_data()
@@ -412,7 +506,6 @@ server <- function(input, output, session) {
           col = "red",
           size = unit(5, "pt")
         )
-
       ggplotly(p)
     })
 
@@ -477,7 +570,6 @@ server <- function(input, output, session) {
           hjust = 0
         ) +
         theme_minimal()
-
       ggplotly(p)
     })
 
@@ -503,7 +595,6 @@ server <- function(input, output, session) {
         ) +
         ylim(0, 1) +
         theme_minimal()
-
       ggplotly(p)
     })
 
@@ -522,7 +613,6 @@ server <- function(input, output, session) {
           y = "Weight (kg)"
         ) +
         theme_minimal()
-
       ggplotly(p)
     })
   })

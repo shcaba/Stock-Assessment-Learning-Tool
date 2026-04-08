@@ -11,6 +11,7 @@ library(shinyWidgets)
 library(shinyjs)
 library(FSAsim)
 library(twosamples)
+library(FishLife)
 
 ui <- page_navbar(
   title = "Stock Assessment Learning Tool",
@@ -526,6 +527,11 @@ ui <- page_navbar(
             step = 0.1
           )
         ),
+        card(
+          card_header("FishLife life history values"),
+          textInput("Genspp_FL", "Enter scientific name", value = ""),
+          uiOutput("downloadFishLifebutton")
+        )
       ),
 
       # Main panel with plots

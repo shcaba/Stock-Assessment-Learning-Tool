@@ -52,7 +52,8 @@ ui <- page_navbar(
                     #bs_icon("gender-ambiguous", size = "3em", class = "text-primary mb-3"),
                     icon("heart-pulse", class = "fa-3x fa-sharp fa-solid"),
                     h3("Life History Parameters", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -85,7 +86,9 @@ ui <- page_navbar(
                       width = "200px"
                     ),
                     h3("Selectivity", class = "card-title")
-                  )
+                  ),
+                    class = "d-flex justify-content-center align-items-center"
+
                 ),
                 card_body(
                   p(
@@ -119,7 +122,9 @@ ui <- page_navbar(
                       "Stock Productivity and Fishery Yield",
                       class = "card-title"
                     )
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
+
                 ),
                 card_body(
                   p(
@@ -153,7 +158,8 @@ ui <- page_navbar(
                       "Understanding and Quantifying Uncertainty",
                       class = "card-title"
                     )
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -184,7 +190,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Sampling abundance", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -215,7 +222,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Sampling age", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -246,7 +254,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Age and length data", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -277,7 +286,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Indicators", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -308,7 +318,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Reference Points", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -339,7 +350,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Scale, Status, Productivity", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -373,7 +385,8 @@ ui <- page_navbar(
                       "Stock Assessment Baseline shifter",
                       class = "card-title"
                     )
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -404,7 +417,8 @@ ui <- page_navbar(
                       width = "300px"
                     ),
                     h3("Stock Assessment Continuum", class = "card-title")
-                  )
+                  ),
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -539,10 +553,12 @@ ui <- page_navbar(
         card_header("Biological Relationships"),
         layout_columns(
           card(
+            full_screen = TRUE,
             card_header("Natural Mortality"),
             plotlyOutput("mortality_plot")
           ),
           card(
+            full_screen = TRUE,
             card_header("Growth Curve"),
             plotlyOutput("growth_plot")
           ),
@@ -550,10 +566,12 @@ ui <- page_navbar(
         ),
         layout_columns(
           card(
+            full_screen = TRUE,
             card_header("Maturity"),
             plotlyOutput("maturity_plot")
           ),
           card(
+            full_screen = TRUE,
             card_header("Weight-Length Relationship"),
             plotlyOutput("weight_length_plot")
           ),
@@ -736,6 +754,7 @@ ui <- page_navbar(
       # Main panel with yield curve plot
       layout_columns(
         card(
+          full_screen = TRUE,
           card_header("Stock Recruitment Curve"),
           plotOutput("sr_plot", height = "400px")
         ),
@@ -760,6 +779,7 @@ ui <- page_navbar(
 
       layout_columns(
         card(
+          full_screen = TRUE,
           card_header("Yield Per Recruit Curve"),
           plotOutput("yield_curve", height = "500px")
         ),
@@ -858,6 +878,7 @@ ui <- page_navbar(
 
         # Top row - main visualization
         card(
+          full_screen = TRUE,
           card_header("Distribution of Measurements"),
           plotOutput("main_plot", height = "400px")
         ),
@@ -877,14 +898,17 @@ ui <- page_navbar(
         layout_columns(
           col_widths = c(4, 4, 4),
           card(
+            full_screen = TRUE,
             card_header("Key concepts"),
             uiOutput("uncertainty")
           ),
           card(
+            full_screen = TRUE,
             card_header("Sources of Uncertainty"),
             uiOutput("sources")
           ),
           card(
+            full_screen = TRUE,
             card_header("Estimating Uncertainty"),
             uiOutput("estimation")
           )
@@ -1002,6 +1026,7 @@ ui <- page_navbar(
       # Main panel with fishing cells and comparison tables
       layout_columns(
         card(
+          full_screen = TRUE,
           card_header(
             "Fish Population Grid (5x5) - Click cells to fish in (i.e., take samples)"
           ),
@@ -1035,9 +1060,11 @@ ui <- page_navbar(
           # ),
           # col_widths = c(3,3),
         ),
+        col_widths = c(8, 4)
       ),
       layout_columns(
         card(
+          full_screen = TRUE,
           card_header("Index: Sample vs Population"),
           card_body(
             plotlyOutput("index_plot")
@@ -1630,15 +1657,18 @@ ui <- page_navbar(
         #    ),
 
         card(
+          full_screen = TRUE,
           card_header("Selectivity and Maturity Curve"),
           plotOutput("selectivity_plot_lt")
         ),
 
         card(
+          full_screen = TRUE,
           card_header("Growth and Mortality"),
           plotOutput("growth_M_plot", height = "500px")
         ),
         card(
+          full_screen = TRUE,
           card_header("Stock Status"),
           tableOutput("stock_status_tab"),
           textOutput("stock_interpretation")
@@ -1648,16 +1678,19 @@ ui <- page_navbar(
       layout_columns(
         col_widths = c(4, 4, 4),
         card(
+          full_screen = TRUE,
           card_header("Sampled age compositions: Fished vs Unfished"),
           plotlyOutput("age_sel_plot")
         ),
 
         card(
+          full_screen = TRUE,
           card_header("Sampled length compositions: Fished vs Unfished"),
           plotlyOutput("length_sel_plot")
         ),
 
         card(
+          full_screen = TRUE,
           card_header("Output table"),
           tableOutput("results_out"),
         )
@@ -1966,16 +1999,19 @@ ui <- page_navbar(
           # Time series plot
           card_header("Simple Indicators"),
           card(
+            full_screen = TRUE,
             #plotlyOutput("stock_time_series_Ct", height = "200px")
             uiOutput("stock_time_series_Ct_ui")
           ),
 
           card(
+            full_screen = TRUE,
             #plotlyOutput("stock_time_series_Index", height = "200px")
             uiOutput("stock_time_series_Index_ui")
           ),
 
           card(
+            full_screen = TRUE,
             #plotlyOutput("stock_time_series_Lt", height = "200px")
             uiOutput("stock_time_series_Lt_ui")
           ),
@@ -2128,16 +2164,19 @@ ui <- page_navbar(
       # Main panel with plot and information
       layout_columns(
         card(
+          full_screen = TRUE,
           card_header("Harvest Control Rule Visualization"),
           plotOutput("control_rule_plot", height = "500px")
         ),
 
         card(
+          full_screen = TRUE,
           card_header("Stock Status Summary"),
           verbatimTextOutput("stock_status_RPs")
         ),
 
         card(
+          full_screen = TRUE,
           card_header("Harvest Control Rule Summary"),
           verbatimTextOutput("stock_status")
         ),

@@ -1967,26 +1967,31 @@ ui <- page_navbar(
           card_header("Simple Indicators"),
           card(
             #plotlyOutput("stock_time_series_Ct", height = "200px")
+            full_screen = TRUE,
             uiOutput("stock_time_series_Ct_ui")
           ),
 
           card(
             #plotlyOutput("stock_time_series_Index", height = "200px")
+            full_screen = TRUE,
             uiOutput("stock_time_series_Index_ui")
           ),
 
           card(
             #plotlyOutput("stock_time_series_Lt", height = "200px")
+            full_screen = TRUE,
             uiOutput("stock_time_series_Lt_ui")
           ),
           #LH and Summary statistics card
           card(
             layout_columns(
               card(
+                full_screen = TRUE,
                 card_header("Life History Values"),
                 tableOutput("LH_values")
               ),
               card(
+                full_screen = TRUE,
                 card_header("Summary Statistics"),
                 tableOutput("summary_stats"),
                 actionButton("copy_btn", "Copy Table", class = "btn-primary")

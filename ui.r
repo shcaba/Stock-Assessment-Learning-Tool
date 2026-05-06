@@ -87,8 +87,7 @@ ui <- page_navbar(
                     ),
                     h3("Selectivity", class = "card-title")
                   ),
-                    class = "d-flex justify-content-center align-items-center"
-
+                  class = "d-flex justify-content-center align-items-center"
                 ),
                 card_body(
                   p(
@@ -124,7 +123,6 @@ ui <- page_navbar(
                     )
                   ),
                   class = "d-flex justify-content-center align-items-center"
-
                 ),
                 card_body(
                   p(
@@ -1999,21 +1997,18 @@ ui <- page_navbar(
           # Time series plot
           card_header("Simple Indicators"),
           card(
-            full_screen = TRUE,
             #plotlyOutput("stock_time_series_Ct", height = "200px")
             full_screen = TRUE,
             uiOutput("stock_time_series_Ct_ui")
           ),
 
           card(
-            full_screen = TRUE,
             #plotlyOutput("stock_time_series_Index", height = "200px")
             full_screen = TRUE,
             uiOutput("stock_time_series_Index_ui")
           ),
 
           card(
-            full_screen = TRUE,
             #plotlyOutput("stock_time_series_Lt", height = "200px")
             full_screen = TRUE,
             uiOutput("stock_time_series_Lt_ui")

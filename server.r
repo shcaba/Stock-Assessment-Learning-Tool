@@ -2190,7 +2190,7 @@ server <- function(input, output, session) {
       if (any(max.age.in)) {
         max.age.in = min(max.age.in)
       } else {
-        max.age.in <- input$M.pval
+        max.age.in <- 5.4 / input$M.pval
       }
 
       updateNumericInput(

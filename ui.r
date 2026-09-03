@@ -1316,11 +1316,22 @@ ui <- page_navbar(
           ),
           fluidRow(
             column(
-              width = 6,
+              width = 3,
               numericInput(
                 "sampsize",
                 "Sample size",
                 value = 500,
+                min = 1,
+                max = 1000000,
+                step = 1
+              )
+            ),
+            column(
+              width = 3,
+              numericInput(
+                "repsize",
+                "Replicates",
+                value = 1,
                 min = 1,
                 max = 1000000,
                 step = 1

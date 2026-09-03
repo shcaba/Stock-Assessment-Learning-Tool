@@ -249,7 +249,7 @@ Age_samp_check <- function(True_pop_mat, sampN, test.opt = 5, Age_err = 0) {
   samp.size <- sample(True_pop_mat$Age, sampN, replace = TRUE, prob = probs_in)
   #Create ageing error in samples
   if (Age_err > 0) {
-    samp.size = round(rnorm(samp.size, samp.size, samp.size * Age_err))
+    samp.size <- round(rnorm(samp.size, samp.size, samp.size * Age_err))
   }
 
   age_vec <- data.frame(
@@ -2188,7 +2188,7 @@ server <- function(input, output, session) {
       )
 
       if (any(max.age.in)) {
-        max.age.in = min(max.age.in)
+        max.age.in <- min(max.age.in)
       } else {
         max.age.in <- 5.4 / input$M.pval
       }
@@ -2320,57 +2320,129 @@ server <- function(input, output, session) {
 
     Samp_ages_comp <- eventReactive(input$calculate.sampsize, {
       Pvals_profile <- Pvals_profile()
-      Samp_ages_comp <- Age_samp_check(
-        Pvals_profile$Numages_in,
-        input$sampsize,
-        Age_err = input$Age_err
-      )
+      if (input$repsize == 1) {
+        Samp_ages_comp <- Age_samp_check(
+          Pvals_profile$Numages_in,
+          input$sampsize,
+          Age_err = input$Age_err
+        )
+      }
+
+      if (input$repsize > 1) {
+        Samp_ages_comp <- list()
+        for (i in 1:input$repsize) {
+          Samp_ages_comp[[i]] <- Age_samp_check(
+            Pvals_profile$Numages_in,
+            input$sampsize,
+            Age_err = input$Age_err
+          )
+        }
+      }
+
       return(Samp_ages_comp)
     })
 
     output$Ageprop_plot <- renderPlot({
-      mod <- subset(Samp_ages_comp()$Proportions, Source == "Modelled")
-      samp <- subset(Samp_ages_comp()$Proportions, Source == "Sampled")
-
-      mod.nums.plot <- mod$Prop[(input$CC.sel_agemin + 1):(input$CC.sel_agemax)]
-      samp.nums.plot <- samp$Prop[
-        (input$CC.sel_agemin + 1):(input$CC.sel_agemax)
-      ]
-      age.range <- mod$Age[(input$CC.sel_agemin + 1):(input$CC.sel_agemax)]
-
-      if (any(mod.nums.plot == 0)) {
-        mod.nums.plot[mod.nums.plot == 0] <- NA
+      age_data <- if (input$repsize == 1) {
+        Samp_ages_comp()$Proportions |>
+          transform(Replicate = 1L)
+      } else {
+        Map(
+          function(x, i) {
+            x$Proportions |>
+              transform(Replicate = i)
+          },
+          Samp_ages_comp(),
+          seq_along(Samp_ages_comp())
+        ) |>
+          do.call(what = rbind)
       }
-      if (any(samp.nums.plot == 0)) {
-        samp.nums.plot[samp.nums.plot == 0] <- NA
-      }
 
-      mod.Z <- lm(
-        log(mod.nums.plot) ~ age.range
-      )$coeff[2]
+      mod <- subset(age_data, Source == "Modelled" & Replicate == 1)
+      samp <- subset(age_data, Source == "Sampled")
 
-      samp.Z <- lm(
-        log(samp.nums.plot) ~ age.range
-      )$coeff[2]
+      age_indices <- (input$CC.sel_agemin + 1):input$CC.sel_agemax
 
-      ggplot(Samp_ages_comp()$Proportions, aes(Age, Prop, col = Source)) +
-        geom_line() +
+      mod_props <- mod$Prop[age_indices]
+      mod_ages <- mod$Age[age_indices]
+      mod_props[mod_props == 0] <- NA_real_
+
+      mod.Z <- coef(lm(log(mod_props) ~ mod_ages))[2]
+
+      sampled_Z <- split(samp, samp$Replicate) |>
+        vapply(
+          function(x) {
+            props <- x$Prop[age_indices]
+            ages <- x$Age[age_indices]
+            props[props == 0] <- NA_real_
+            coef(lm(log(props) ~ ages))[2]
+          },
+          numeric(1)
+        )
+
+      ggplot() +
+        geom_line(
+          data = samp,
+          aes(Age, Prop, group = Replicate),
+          color = "grey50",
+          alpha = 0.6,
+          linewidth = 1
+        ) +
+        geom_line(
+          data = mod,
+          aes(Age, Prop),
+          color = "blue",
+          linewidth = 1
+        ) +
         theme_bw() +
-        ggtitle(paste0(
-          "Sample size = ",
-          input$sampsize,
-          "; True Z = ",
-          round(mod.Z, 3),
-          " & Est. Z = ",
-          round(samp.Z, 3)
-        ))
+        labs(
+          color = NULL,
+          title = paste0(
+            "Sample size = ",
+            input$sampsize,
+            "; True Z = ",
+            round(mod.Z, 3),
+            " & Mean est. Z = ",
+            round(mean(sampled_Z, na.rm = TRUE), 3)
+          )
+        )
     })
 
     output$CDF_plot <- renderPlot({
-      ggplot(Samp_ages_comp()$Proportions, aes(Age, CDF, col = Source)) +
-        geom_line() +
+      age_data <- if (input$repsize == 1) {
+        Samp_ages_comp()$Proportions |>
+          transform(Replicate = 1L)
+      } else {
+        Map(
+          function(x, i) {
+            x$Proportions |>
+              transform(Replicate = i)
+          },
+          Samp_ages_comp(),
+          seq_along(Samp_ages_comp())
+        ) |>
+          do.call(what = rbind)
+      }
+
+      mod <- subset(age_data, Source == "Modelled" & Replicate == 1)
+      samp <- subset(age_data, Source == "Sampled")
+
+      ggplot() +
+        geom_line(
+          data = samp,
+          aes(Age, CDF, group = Replicate),
+          color = "grey50",
+          alpha = 0.6,
+          linewidth = 1
+        ) +
+        geom_line(
+          data = mod,
+          aes(Age, CDF),
+          color = "blue",
+          linewidth = 1
+        ) +
         theme_bw() +
-        ggtitle(paste0("Sample size = ", input$sampsize))
+        labs(title = paste0("Sample size = ", input$sampsize))
     })
   })
 
@@ -3690,8 +3762,8 @@ server <- function(input, output, session) {
       }
       #      if(!is.null(input$data.id) & any(input$data.id=="Catch"))
       #      {
-      I = input$Ct_I_in
-      RP = input$Ct_RP_in
+      I <- input$Ct_I_in
+      RP <- input$Ct_RP_in
       if (I != 0 & RP != 0) {
         CR_calc_Ct <- eval(parse(text = cr.calc.ct))
       }
@@ -3713,8 +3785,8 @@ server <- function(input, output, session) {
       }
       #      if(!is.null(input$data.id) & any(input$data.id=="Catch"))
       #      {
-      I = input$I_I_in
-      RP = input$I_RP_in
+      I <- input$I_I_in
+      RP <- input$I_RP_in
       if (I != 0 & RP != 0) {
         CR_calc_Ind <- eval(parse(text = cr.calc.ind))
       }
@@ -3736,8 +3808,8 @@ server <- function(input, output, session) {
       }
       #      if(!is.null(input$data.id) & any(input$data.id=="Catch"))
       #      {
-      I = input$Lt_I_in
-      RP = input$Lt_RP_in
+      I <- input$Lt_I_in
+      RP <- input$Lt_RP_in
       if (I != 0 & RP != 0) {
         CR_calc_Lt <- eval(parse(text = cr.calc.lt))
       }
@@ -5205,25 +5277,25 @@ server <- function(input, output, session) {
         )
 
         if (current_node() == "root") {
-          list.out$src = src = file.path(getwd(), "SAC_pics/SAC.jpg")
+          list.out$src <- src <- file.path(getwd(), "SAC_pics/SAC.jpg")
         }
         if (current_node() == "scale_node") {
-          list.out$src = file.path(getwd(), "SAC_pics/Scale_bio.jpg")
+          list.out$src <- file.path(getwd(), "SAC_pics/Scale_bio.jpg")
         }
         if (current_node() == "scale_bio_node") {
-          list.out$src = file.path(getwd(), "SAC_pics/Scale_bioYES_Index.jpg")
+          list.out$src <- file.path(getwd(), "SAC_pics/Scale_bioYES_Index.jpg")
         }
         if (current_node() == "scale_nobio_node") {
-          list.out$src = file.path(getwd(), "SAC_pics/Scale_bioNO_Index.jpg")
+          list.out$src <- file.path(getwd(), "SAC_pics/Scale_bioNO_Index.jpg")
         }
         if (current_node() == "status_node") {
-          list.out$src = file.path(getwd(), "SAC_pics/Status_bio.jpg")
+          list.out$src <- file.path(getwd(), "SAC_pics/Status_bio.jpg")
         }
         if (current_node() == "status_bio_node") {
-          list.out$src = file.path(getwd(), "SAC_pics/Status_bioYES_Index.jpg")
+          list.out$src <- file.path(getwd(), "SAC_pics/Status_bioYES_Index.jpg")
         }
         if (current_node() == "status_nobio_node") {
-          list.out$src = file.path(getwd(), "SAC_pics/Status_bioNO_Index.jpg")
+          list.out$src <- file.path(getwd(), "SAC_pics/Status_bioNO_Index.jpg")
         }
 
         list.out
@@ -5242,49 +5314,49 @@ server <- function(input, output, session) {
         )
 
         if (current_node() == "scale_bio_index_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Scale_bioYES_IndexYES_IA.jpg"
           )
         }
         if (current_node() == "scale_bio_noindex_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Scale_bioYES_IndexNO_CL.jpg"
           )
         }
         if (current_node() == "scale_nobio_index_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Scale_bioNO_IndexYES_SP.jpg"
           )
         }
         if (current_node() == "scale_nobio_noindex_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Scale_bioNO_IndexNO_CtO.jpg"
           )
         }
         if (current_node() == "status_bio_index_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Status_bioYES_IndexYES_MInd.jpg"
           )
         }
         if (current_node() == "status_bio_noindex_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Status_bioYES_IndexNO_LAO.jpg"
           )
         }
         if (current_node() == "status_nobio_index_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Status_bioNO_IndexYES_Indicator.jpg"
           )
         }
         if (current_node() == "status_nobio_noindex_node") {
-          list.end$src = file.path(
+          list.end$src <- file.path(
             getwd(),
             "SAC_pics/Status_bioNO_IndexNO_RA.jpg"
           )

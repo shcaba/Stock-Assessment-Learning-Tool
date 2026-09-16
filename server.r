@@ -3510,7 +3510,7 @@ server <- function(input, output, session) {
             "von Bertalanffy: L∞=",
             input$Linf_bc,
             ", k=",
-            input$K,
+            input$K_bc,
             ", t₀=",
             input$t0_bc,
             " | Natural Mortality: M=",

@@ -15,13 +15,22 @@ ui <- page_sidebar(
     fileInput("file", "Upload CSV File", accept = c(".csv")),
     helpText("CSV should have columns: age, length"),
     hr(),
-    h5("Parameter Settings"),
-    checkboxInput("fix_Linf", "Fix L∞ (asymptotic length)", FALSE),
-    numericInput("Linf_value", "L∞ value:", 100, min = 0),
-    checkboxInput("fix_K", "Fix K (growth coefficient)", FALSE),
-    numericInput("K_value", "K value:", 0.3, min = 0, step = 0.01),
-    checkboxInput("fix_t0", "Fix t₀ (theoretical age at length 0)", FALSE),
-    numericInput("t0_value", "t₀ value:", -0.5, step = 0.1),
+    h4("von Bertalanffy growth parameter settings"),
+    h5("L∞ (asymptotic length)"),
+    fluidRow(
+      column(6, numericInput("Linf_value", "L∞ value:", 100, min = 0)),
+      column(6, checkboxInput("fix_Linf", "Fix L∞", FALSE))
+    ),
+    h5("K (growth coefficient)"),
+    fluidRow(
+      column(6, numericInput("K_value", "K value:", 0.3, min = 0, step = 0.01)),
+      column(6, checkboxInput("fix_K", "Fix K", FALSE))
+    ),
+    h5("t₀ (theoretical age at length 0)"),
+    fluidRow(
+      column(6, numericInput("t0_value", "t₀ value:", -0.5, step = 0.1)),
+      column(6, checkboxInput("fix_t0", "Fix t₀", FALSE))
+    ),
     hr(),
     actionButton("estimate", "Estimate Parameters", class = "btn-primary")
   ),
@@ -31,7 +40,33 @@ ui <- page_sidebar(
     nav_panel(
       "Data Preview",
       layout_columns(
-        col_widths = c(4, 8),
+        col_widths = c(4, 2, 6),
+        card(
+          card_header("Von Bertalanffy Growth Function"),
+          markdown(
+            "
+### Model Description
+
+The von Bertalanffy growth function describes growth in length over age:
+
+**L(t) = L∞ × (1 - e^(-k(t - t₀)))**
+
+Where:
+- **L(t)**: Length at age t
+- **L∞**: Asymptotic (maximum) length
+- **k**: Growth rate coefficient (how fast the asymptote is reached)
+- **t₀**: Theoretical age at length 0
+
+### How to Use
+
+1. **Upload Data**: Prepare a CSV file with columns 'age' and 'length'
+2. **Fix Parameters** (optional): Check boxes to fix specific parameters at input values
+3. **Fit Model**: Click 'Estimate Parameters' to estimate parameters
+4. **View Results**: See parameter estimates and growth curve
+
+                "
+          )
+        ),
         card(
           card_header("Uploaded Data"),
           tableOutput("data_table")
